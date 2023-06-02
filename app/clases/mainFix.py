@@ -235,7 +235,7 @@ class MainFix():
                 self.balance[task["cuenta"]] = task["balance"]
                 #self.log.info(f"balance nuevo: {self.balance}")
             
-            if task["type"]>2 and task["type"]<7:
+            if task["type"]==3 or  task["type"]==4 or task["type"]==5 or task["type"]==6: 
                 #es mensaje de una orden nueva 
                 # {"type": 3, "data":details}
                 clientOrderID = task["data"]["clOrdId"]
