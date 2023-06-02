@@ -290,7 +290,7 @@ class botBB(taskSeqManager):
                         if task is not None:
                             #self.log.info(f"el bot tiene tareas")
                             #self.log.info(f" se va ejecutar esta tarea: {task}")
-                            self.marcar_completada(task)
+                            await self.marcar_completada(task)
                             await self.execute_task(task)
                             #self.log.info(f"se completo la tarea: {task}")
                 await asyncio.sleep(0.1)
@@ -877,7 +877,7 @@ class botBB(taskSeqManager):
         response = False
         try:
             #self.log.info(f"contador operadas: {self.botData['ordenOperada']}")
-            await self.actualizar_posiciones(details)
+            asyncio.create_task(self.actualizar_posiciones(details))
             #self.log.info(                f"verificando orden operada del id_bot: {self.clientR.id_bot}")
             orderId = details["orderId"]
             clOrdId = details["clOrdId"]
@@ -896,7 +896,7 @@ class botBB(taskSeqManager):
                         if order["data"]["ordStatus"]=="NEW":
                             #es colgada enviar notificacion 
                             dataMd = {"type": "colgada", "details": order["data"]}
-                            self.fix.server_md.broadcast(str(dataMd))
+                          #  self.fix.server_md.broadcast(str(dataMd))
                 await self.clientR.disable_order_status(orderId, clOrdId)
 
                 await self.clientR.save_order_details(details, activeOrder)

@@ -881,8 +881,8 @@ class botCi48(taskSeqManager):
                         #verificar si es colgada 
                         if order["data"]["ordStatus"]=="NEW":
                             #es colgada enviar notificacion 
-                            dataMd = {"type": "colgada", "details": order["data"]}
-                            self.fix.server_md.broadcast(str(dataMd))
+                            dataMd = {"type": "bb", "details": order["data"]}
+                           # self.fix.server_md.broadcast(str(dataMd))
                 await self.clientR.disable_order_status(orderId, clOrdId)
 
                 await self.clientR.save_order_details(details, activeOrder)
