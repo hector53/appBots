@@ -163,18 +163,18 @@ class MainFix():
                 
                 if self.clOrdIdEsperar[clOrdId]["llegoRespuesta"] == True:
                     self.log.info(f"llego respuesta en esperar respuesta de: {clOrdId},  contador: {contador} contadorParcial: {contadorParcial}")
-                    if contadorParcial>20:
+                    if contadorParcial>3:
                         response = self.clOrdIdEsperar[clOrdId]
                         del self.clOrdIdEsperar[clOrdId]
                         break
                     contadorParcial+=1
                 contador+=1
-                if contador > 1000:
+                if contador > 30:
                     self.log.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
                     response = {
                         "llegoRespuesta": False, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.1)
         except Exception as e:
             self.log.error(f"error en esperarRespuesta: {e}")
         return response
