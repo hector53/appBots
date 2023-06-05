@@ -70,18 +70,11 @@ class MainFix():
         timeA = datetime.datetime.now()
         self.log.info(f"mensaje del puerto: {self.port} y tiempo: {timeA} message: {message}")
         encode_json = json.loads(str(message).replace("'", '"'))
-        if encode_json["type"]==1:
-            self.iniciar_orden_filled(encode_json)
-        else:
-            self.message_queue.put_nowait(encode_json)
+        
+        self.message_queue.put_nowait(encode_json)
         #self.ws.send(str({"message": "mensaje de prueba"}))
 
-    def iniciar_orden_filled(self, task):
-        self.log.info(f"iniciar loop para orden filled")
-        loop3 = asyncio.new_event_loop()# creo un nuevo evento para asyncio y asi ejecutar todo de aqui en adelante con async await 
-        asyncio.set_event_loop(loop3)
-        loop3.run_until_complete(self.procesar_orden_filled(task))#ejecuto la funcion q quiero
-        loop3.close()
+
 
     def on_error(self, ws, error):
         print(error)
@@ -163,18 +156,18 @@ class MainFix():
                 
                 if self.clOrdIdEsperar[clOrdId]["llegoRespuesta"] == True:
                     self.log.info(f"llego respuesta en esperar respuesta de: {clOrdId},  contador: {contador} contadorParcial: {contadorParcial}")
-                    if contadorParcial>3:
+                    if contadorParcial>20:
                         response = self.clOrdIdEsperar[clOrdId]
                         del self.clOrdIdEsperar[clOrdId]
                         break
                     contadorParcial+=1
                 contador+=1
-                if contador > 30:
+                if contador > 1000:
                     self.log.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
                     response = {
                         "llegoRespuesta": False, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
         except Exception as e:
             self.log.error(f"error en esperarRespuesta: {e}")
         return response
@@ -229,6 +222,9 @@ class MainFix():
             #{'type': 0, 'symbolTicker': 'MERV - XMEV - AL30 - CI', 'marketData': {'BI': [{'price': 40.0, 'size': 10, 'position': 1}], 'OF': []}}
             if task["type"]==0:
                 await self.update_tickers_bot(task)
+
+            if task["type"]==1:
+                self.procesar_orden_filled(task)
 
             if task["type"]==2:
                 #{"type": 2, "cuenta": cuenta, "balance": newBalance}
