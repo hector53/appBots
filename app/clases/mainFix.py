@@ -6,6 +6,7 @@ from app.clases.socketClient import clientSocket
 from app.clases.botManager import botManager
 import datetime
 import json
+from app.clases.class_cola import Cola
 #class main para quickfix 
 class MainFix():
     def __init__(self,  user,  account,  accountFixId, puertows):
@@ -15,7 +16,7 @@ class MainFix():
         self.port = puertows
         self.threadFix = None
         self.threadCola = None
-        self.message_queue = asyncio.Queue()
+        self.message_queue = Cola()
         self.stopCola = asyncio.Event()
         #server Broadcaster
         self.log = logging.getLogger("MainFix")
@@ -55,10 +56,10 @@ class MainFix():
         try:
             while not self.stopCola.is_set():
              #   #self.log.info("ciclo infinito")
-                if not self.message_queue.empty():
-                    task = await self.message_queue.get()
+                task = await self.message_queue.obtener_tarea()
+                if task is not None:
+                    await self.message_queue.marcar_completada(task)
                     asyncio.create_task(self.process_message(task))
-                    self.message_queue.task_done()
                 await asyncio.sleep(0.01)
         except Exception as e:
             # Manejar la excepción adecuadamente
@@ -71,7 +72,7 @@ class MainFix():
         self.log.info(f"mensaje del puerto: {self.port} y tiempo: {timeA} message: {message}")
         encode_json = json.loads(str(message).replace("'", '"'))
         
-        self.message_queue.put_nowait(encode_json)
+        self.message_queue.agregar_tarea_not_await(encode_json)
         #self.ws.send(str({"message": "mensaje de prueba"}))
 
 
@@ -217,7 +218,7 @@ class MainFix():
                 response = await taskOperada
         
     async def process_message(self, task):
-        #self.log.info(f"procesando mensaje de fix .....: {task}")
+        self.log.info(f"procesando mensaje de fix .....: {task}")
         if "type" in task:
             #{'type': 0, 'symbolTicker': 'MERV - XMEV - AL30 - CI', 'marketData': {'BI': [{'price': 40.0, 'size': 10, 'position': 1}], 'OF': []}}
             if task["type"]==0:

@@ -4,6 +4,9 @@ class Cola:
     
     async def agregar_tarea(self, tarea):
         self.tareas.append(tarea)
+
+    def agregar_tarea_not_await(self, tarea):
+        self.tareas.append(tarea)
     
     async def obtener_tarea(self):
         if self.tareas:
