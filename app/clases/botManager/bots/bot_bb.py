@@ -184,7 +184,7 @@ class botBB(taskSeqManager):
             std = statistics.stdev(close_prices)
             upper = mean + (std * self.maximum_arbitrage_rate) + 0.05
             self.upperBB = upper
-            lower = mean - (std * self.minimum_arbitrage_rate) + 0.05
+            lower = mean - (std * self.minimum_arbitrage_rate) - 0.05
             self.lowerBB = lower
             self.log.info(f"upper: {upper}")
             self.log.info(f"lower: {lower}")
