@@ -224,7 +224,7 @@ class MainFix():
                 await self.update_tickers_bot(task)
 
             if task["type"]==1:
-                self.procesar_orden_filled(task)
+                await self.procesar_orden_filled(task)
 
             if task["type"]==2:
                 #{"type": 2, "cuenta": cuenta, "balance": newBalance}
