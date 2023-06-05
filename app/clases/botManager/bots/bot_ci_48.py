@@ -272,14 +272,13 @@ class botCi48(taskSeqManager):
                 #   self.log.info("estoy en el ciclo inifito del bot")
                 if self.paused.is_set():
                     self.log.info(f"el bot no esta en pause")
-                    if self.botData["soloEscucharMercado"] == False:
-                        task = await self.obtener_tarea()
-                        if task is not None:
-                            self.log.info(f"el bot tiene tareas")
-                            self.log.info(f" se va ejecutar esta tarea: {task}")
-                            await self.marcar_completada(task)
-                            await self.execute_task(task)
-                            self.log.info(f"se completo la tarea: {task}")
+                    task = await self.obtener_tarea()
+                    if task is not None:
+                        self.log.info(f"el bot tiene tareas")
+                        self.log.info(f" se va ejecutar esta tarea: {task}")
+                        await self.marcar_completada(task)
+                        await self.execute_task(task)
+                        self.log.info(f"se completo la tarea: {task}")
                 await asyncio.sleep(0.1)
             #    self.log.info(f"sin task en la cola del bot: {self.id}")
         except Exception as e:
@@ -681,7 +680,9 @@ class botCi48(taskSeqManager):
                     self.log.info(f"puedo crear orden en CI: {sideBook}")
                     # indice del book q puedo tomar sus valores
                     indice = verificarOperar["indiceBookUsar"]
-                    incideCI = verificarCI["indiceBookUsar"]
+                    incideCI = 0
+                    if verificarCI["primeraOrden"]==False:
+                        incideCI = verificarCI["indiceBookUsar"]
                     # precio del book q puedo tomar sus valores
                     market_price_48h = self._tickers[self.botData["byma48h"]
                                                      ][sideBook][indice]["price"]
@@ -761,7 +762,9 @@ class botCi48(taskSeqManager):
                     self.log.info(f"puedo crear orden en CI: {sideBook}")
                     # indice del book q puedo tomar sus valores
                     indice = verificarOperar["indiceBookUsar"]
-                    incideCI = verificarCI["indiceBookUsar"]
+                    incideCI = 0
+                    if verificarCI["primeraOrden"]==False:
+                        incideCI = verificarCI["indiceBookUsar"]
                     # precio del book q puedo tomar sus valores
                     market_price_48h = self._tickers[self.botData["byma48h"]
                                                      ][sideBook][indice]["price"]

@@ -751,7 +751,7 @@ class client_request():
             #print("clOrdId", clOrdId)
             self.log.info(f"clOrdId: {clOrdId}")
             order = await self.mainFix.newOrderFix(clOrdId, symbol, side, quantity, price, orderType, self.cuenta)
-            self.log.info(f"order new: {order}")
+            self.log.info(f"order new del clOrdId: {clOrdId}: {order}")
             if order["llegoRespuesta"]==True:
                 self.log.info(f"llego respuesta de nuevaOrden, vamos a validar carias cositas")
                 if order["data"]["typeFilled"]==1:
@@ -854,6 +854,7 @@ class client_request():
         try:
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             order = await self.mainFix.modifyOrderFix( clOrdId,orderId, origClOrdId, side, orderType, symbol, quantity, price, self.cuenta)
+            self.log.info(f"llego respuesta de modify size con clOrdId: {clOrdId}: {order} ")
             if order["llegoRespuesta"] == True:
                 self.log.info(f"llego respuesta de modifyOrden, vamos a validar carias cositas")
                 if order["data"]["typeFilled"]==1:
@@ -995,7 +996,7 @@ class client_request():
         try: 
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             order = await self.mainFix.cancelOrderFix(clOrdId, OrigClOrdID, side, quantity, symbol, self.cuenta)
-            self.log.info(f"order cancel: {order}")
+            self.log.info(f"llego respuesta de order cancel con clOrdId: {clOrdId}, order: {order}")
             if order["llegoRespuesta"]==True:
                 self.log.info(f"llego respuesta de cancelOrder, vamos a validar carias cositas")
                 if order["data"]["reject"]=='true':

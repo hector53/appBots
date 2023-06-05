@@ -162,14 +162,14 @@ class MainFix():
             while True:
                 
                 if self.clOrdIdEsperar[clOrdId]["llegoRespuesta"] == True:
-                    if contadorParcial>2:
+                    if contadorParcial>20:
                         response = self.clOrdIdEsperar[clOrdId]
                         del self.clOrdIdEsperar[clOrdId]
                         break
                     contadorParcial+=1
                 contador+=1
-                if contador > 20:
-                    #self.log.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
+                if contador > 500:
+                  #  self.log.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
                     response = {
                         "llegoRespuesta": False, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
