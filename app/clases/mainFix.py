@@ -156,20 +156,21 @@ class MainFix():
     async def esperarRespuesta(self, clOrdId, typeOrder):
         response = {"llegoRespuesta": False}
         try:
-            #self.log.info(f"esperando respuesta de {typeOrder}, con el clOrdId: {clOrdId}")
+            self.log.info(f"esperando respuesta de {typeOrder}, con el clOrdId: {clOrdId}")
             contador = 0
             contadorParcial = 0
             while True:
                 
                 if self.clOrdIdEsperar[clOrdId]["llegoRespuesta"] == True:
+                    self.log.info(f"llego respuesta en esperar respuesta de: {clOrdId},  contador: {contador} contadorParcial: {contadorParcial}")
                     if contadorParcial>20:
                         response = self.clOrdIdEsperar[clOrdId]
                         del self.clOrdIdEsperar[clOrdId]
                         break
                     contadorParcial+=1
                 contador+=1
-                if contador > 500:
-                  #  self.log.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
+                if contador > 1000:
+                    self.log.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
                     response = {
                         "llegoRespuesta": False, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
