@@ -893,7 +893,7 @@ class botBB(taskSeqManager):
                 order = await self.operar_orden(details, lastOrderID)
                 self.log.info(                    f"llego respuesta de orden contraria operada: {order}")
                 if order["llegoRespuesta"] == True:
-                    if order["data"]["reject"] == False:
+                    if order["data"]["reject"] == 'false':
                         self.log.info(                            f"es filled o colgada ahora si descuento la rueda ")
                         await self.guardar_mitad_rueda(order["data"], order["lastQty"], 1)
                         if order["data"]["ordStatus"]=="NEW":
