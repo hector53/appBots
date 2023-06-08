@@ -850,7 +850,7 @@ class botTriangulo(taskSeqManager):
                         if task is not None:
                             self.log.info(f"el bot tiene tareas")
                             self.log.info(f" se va ejecutar esta tarea: {task}")
-                            self.marcar_completada(task)
+                            await self.marcar_completada(task)
                             await self.execute_task(task)
                             self.log.info(f"se completo la tarea: {task}")
                         else:
