@@ -72,6 +72,7 @@ class botTriangulo(taskSeqManager):
 
     async def  calcular_limit_futuro1_ask(self, verificarFuturo1):
         self.log.info("entrando a calcular_limit_futuro1_ask")
+        """
         if len(self._tickers[self.botData["futuro2"]]["OF"])<(self.botData["indices_futuros"][self.botData["futuro2"]]["OF"]+1):
             self.log.info("en futuro2 ask hay una orden y es mia, o esta vacia ")
             return 0
@@ -79,6 +80,7 @@ class botTriangulo(taskSeqManager):
             self.log.info("en paseFuturos bid esta vacio")
             #si pase en este momento es 0 entonces me salgo 
             return 0
+        """
         #voy a guardar los indices q necesito en variables
         indicePaseBid = self.botData["indices_futuros"][self.botData["paseFuturos"]]["BI"]
         indiceFuturo2Ask = self.botData["indices_futuros"][self.botData["futuro2"]]["OF"]
@@ -86,10 +88,9 @@ class botTriangulo(taskSeqManager):
         futuro2Ask = self._tickers[self.botData["futuro2"]]["OF"][indiceFuturo2Ask]["price"]
         paseFuturosBid = self._tickers[self.botData["paseFuturos"]]["BI"][indicePaseBid]["price"]
         precioMaxGanAskFuturo1 = futuro2Ask - paseFuturosBid
-        futuro2AskSize = self._tickers[self.botData["futuro2"]]["OF"][indiceFuturo2Ask]["size"]
         self.log.info(f"futuro2Ask:{futuro2Ask}, paseFuturosBid: {paseFuturosBid}, precioMaxGanAskFuturo1: {precioMaxGanAskFuturo1} ")
         futuro1Ask = 0
-        if verificarFuturo1["puedoOperar"]==True:
+        if verificarFuturo1==True:
             futuro1Ask = self._tickers[self.botData["futuro1"]]["OF"][indiceFuturo1Ask]["price"]
         limitAskFuturo1 = 0
         if futuro1Ask > 0 and futuro1Ask > precioMaxGanAskFuturo1 and (futuro1Ask-precioMaxGanAskFuturo1)>0.11:
@@ -131,6 +132,8 @@ class botTriangulo(taskSeqManager):
     
     async def  calcular_limit_futuro1_bid(self, verificarFuturo1):
         #en este putno ya tengo valores en pase of y futuro2 bid
+
+        """
         self.log.info("entrando a calcular_limit_futuro1_bid")
         if len(self._tickers[self.botData["futuro2"]]["BI"])<(self.botData["indices_futuros"][self.botData["futuro2"]]["BI"]+1):
             self.log.info("en futuro2 bid hay una orden y es mia, o esta vacia ")
@@ -139,6 +142,8 @@ class botTriangulo(taskSeqManager):
             self.log.info("no hay pase en of")
             #si pase en este momento es 0 entonces me salgo 
             return 0
+        """
+        
         #voy a guardar los indices q necesito en variables
         indicePaseAsk = self.botData["indices_futuros"][self.botData["paseFuturos"]]["OF"]
         indiceFuturo2Bid = self.botData["indices_futuros"][self.botData["futuro2"]]["BI"]
@@ -148,13 +153,12 @@ class botTriangulo(taskSeqManager):
         paseFuturosAsk = self._tickers[self.botData["paseFuturos"]]["OF"][indicePaseAsk]["price"]
         #voy a calcular el precio maximo de ganancia
         precioMaxGanBidFuturo1 = futuro2Bid - paseFuturosAsk
-        #voy a guardar el size de las orden del futuro2 bid
-        futuro2BidSize = self._tickers[self.botData["futuro2"]]["BI"][indiceFuturo2Bid]["size"]
+        
         self.log.info(f"futuro2Bid:{futuro2Bid}, paseFuturosAsk: {paseFuturosAsk}, precioMaxGanBidFuturo1: {precioMaxGanBidFuturo1} ")
         self.log.info("ahora le voy a poner el valor del futuro1 bid a la variable y crear el precio del limit a la orden")
         futuro1Bid = 0
         self.log.info("verificar si el bid1 esta vacio o si hay una sola orden mia")
-        if verificarFuturo1["puedoOperar"]==True:
+        if verificarFuturo1==True:
             futuro1Bid = self._tickers[self.botData["futuro1"]]["BI"][indiceFuturo1Bid]["price"]
         limitBidFuturo1 = 0
         if futuro1Bid>0 and futuro1Bid < precioMaxGanBidFuturo1 and (precioMaxGanBidFuturo1-futuro1Bid)>0.11 : #true
@@ -195,8 +199,10 @@ class botTriangulo(taskSeqManager):
     
     def update_limits(self, symbol, price, sideBook):
         self.log.info(f"entrando a updatelimits")
+        symbolPunta = self.botData["futuro1"]
         try:
             if symbol == "48":
+                symbolPunta = self.botData["futuro2"]
                 if sideBook == "BI":
                     self.botData["limitsBB"]["bi_48"] = price
                 else:
@@ -206,7 +212,7 @@ class botTriangulo(taskSeqManager):
                     self.botData["limitsBB"]["bi_ci"] = price
                 else:
                     self.botData["limitsBB"]["of_ci"] = price
-            dataMd = {"type": "puntas", "symbolTicker": self.botData["bymaCI"]}
+            dataMd = {"type": "puntas", "symbolTicker": symbolPunta}
             self.fix.ws.send(str(dataMd))
         except Exception as e:
             self.log.error(f"error update limits: {e}")
@@ -232,7 +238,7 @@ class botTriangulo(taskSeqManager):
         futuro2Bid = 0
         self.log.info("verificar si el bid2 esta vacio o si hay una sola orden mia")
        
-        if verificarFuturo1["puedoOperar"]==True:
+        if verificarFuturo1==True:
             futuro2Bid = self._tickers[self.botData["futuro2"]]["BI"][indiceFuturo2Bid]["price"]
         #self.limitBidFuturo2 = futuro2Bid+self.botData["varGan"] if futuro2Bid < self.precioMaxGanBidFuturo2 else self.precioMaxGanBidFuturo2-self.botData["varGan"]
         limitBidFuturo2 = 0
@@ -295,7 +301,7 @@ class botTriangulo(taskSeqManager):
         self.log.info(f"futuro1Ask:{futuro1Ask}, paseFuturosAsk: {paseFuturosAsk}, precioMaxGanAskFuturo2: {precioMaxGanAskFuturo2} ")
         futuro2Ask = 0
         self.log.info("verificar si el ask2 esta vacio o si hay una sola orden mia")
-        if verificarFuturo1["puedoOperar"]==True:
+        if verificarFuturo1==True:
             futuro2Ask = self._tickers[self.botData["futuro2"]]["OF"][indiceFuturo2Ask]["price"]
         self.log.info("ahora le voy a poner el valor del futuro2 bid a la variable y crear el precio del limit a la orden")
         #self.limitBidFuturo2 = futuro2Bid+self.botData["varGan"] if futuro2Bid < self.precioMaxGanBidFuturo2 else self.precioMaxGanBidFuturo2-self.botData["varGan"]
@@ -337,6 +343,18 @@ class botTriangulo(taskSeqManager):
         self.update_limits("48", limitAskFuturo2, "OF")
         return limitAskFuturo2
     
+    async def verificar_primeraOrden_bookVacio(self, priceOrder, priceBook, book):
+
+        if len(book)==0:
+            self.log.info(f"el book esta vacio")
+            return False
+
+        if priceOrder==priceBook:
+            self.log.info(f"estoy de primero en el book")
+            return False 
+        self.log.info(f"retorno true xq puedo tomar valor de este book ")
+        return True
+    
 
     async def  verificar_futuro1_bid(self):
         try:
@@ -346,72 +364,83 @@ class botTriangulo(taskSeqManager):
                 self.log.info("tengo orden creada")
                 orden =  verificarOrdenCreada["data"]
                 #es true osea q si tengo orden 
-                #aqui debo verificar primnero q la orden de futuro1 bid no sea mia 
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "BI", self._tickers[self.botData["futuro1"]]["BI"] )
-                if verificarFuturo1["puedoOperar"]==True: 
-                    self.log.info("puedo usar futuro 1 bid ")
-                    verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "BI", self._tickers[self.botData["futuro2"]]["BI"]) 
-                    verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "OF", self._tickers[self.botData["paseFuturos"]]["OF"]) 
-                    if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                        self.log.info("tengo orden creada y el bid1 es mio y tengo el bid2 y el ask del pase")
-                        self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": verificarFuturo1["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"OF": verificarPase["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": verificarFuturo2["indiceBookUsar"]}
-                        calcularLimit = await self.calcular_limit_futuro1_bid(verificarFuturo1)
-                        if calcularLimit>0:
-                            self.log.info("calcular limit es mayor a 0")
-                            sizeOrder = await self.get_size_order(self.botData["futuro1"], "BI")
-                            limitBidFuturo1 = calcularLimit
-                            self.log.info(f"precio mio {round(orden['price'],1) }")
-                            self.log.info(f"limitBidFuturo1 {round(limitBidFuturo1,1)}")
-                            self.log.info(f"size mio: {orden['leavesQty']}")
-                            if orden['leavesQty']==0:
-                                self.log.info("leavesQty es 0")
-                                return False
-                            self.log.info(f"size a poner : {sizeOrder}")
-                            if round(orden['price'],1) != round(limitBidFuturo1,1) or orden['leavesQty'] != sizeOrder:
-                            #modificar orden
-                                self.log.info("es diferente entonces mando a actualizar")
-                                if not self.paused.is_set():
-                                    self.log.warning(f"paused esta activo")
-                                    return
-                                self.log.info(f"orden operada = false, enviar a modificar orden")
-                                if orden['leavesQty'] != sizeOrder:
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, 
-                                                            self.botData["futuro1"], sizeOrder, limitBidFuturo1)
-                                else:
-                                    sizeOrder = orden['orderQty']
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, 
-                                                            self.botData["futuro1"], sizeOrder, limitBidFuturo1)
-                                self.log.info(f"orden modificada {modificarOrden}")
-                            else:
-                                self.log.info("es lo mismo asi q no actuaklizo ")
-                    else:
-                        self.log.info("debo borrar xq no hay futuro2 o pase ask ")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        self.log.info(f"orden operada = false, enviar a cancelar orden")
-                        borrarOrden = await self.clientR.cancelar_orden(orden['orderId'], orden['clOrdId'], 1, orden['orderQty'], self.botData["futuro1"])
-                        self.log.info(f"orden borrada: {borrarOrden}")
-                else:
-                    self.log.info("o es mi una orden y es mia o no hay ordenes, por ende borro el futuro2bid, pero no lo hare")
-                    if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                    borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 1 )
-            else: 
-                #no tengo orden la creo 
-                self.log.info("no tengo orden la creo")
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "BI", self._tickers[self.botData["futuro1"]]["BI"])
+                #voy  a verificar futuro 1 solamente para ver si estoy de primero o si no hay ordenes en el book 
+                verificarFuturo1 = await self.verificar_primeraOrden_bookVacio(orden["price"], self._tickers[self.botData["futuro1"]]["BI"][0]["price"], self._tickers[self.botData["futuro1"]]["BI"])
+                #si tengo orden creada quiere decir que estoy en el book no tengo que verificar mi propia punta 
                 verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "BI", self._tickers[self.botData["futuro2"]]["BI"]) 
                 verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "OF", self._tickers[self.botData["paseFuturos"]]["OF"]) 
                 if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": verificarPase["indiceBookUsar"]}
+                    self.log.info("tengo orden creada y el bid 2 puedo tomar su valor y el pase tambien ")
+                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": 0}
+                    #aqui quiero tomar el valor del book pero para que ? si aqui lo tengo , asi q voy a tomar el indice 0 del book no importa si es mi orden
+                    self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"OF": verificarPase["indiceBookUsar"]}
+                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": verificarFuturo2["indiceBookUsar"]}
+                    calcularLimit = await self.calcular_limit_futuro1_bid(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
+                    if calcularLimit>0:
+                        self.log.info("calcular limit es mayor a 0")
+                        sizeOrder = await self.get_size_order(self.botData["futuro1"], "BI")
+                        limitBidFuturo1 = calcularLimit
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitBidFuturo1 {round(limitBidFuturo1,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
+                        if orden['leavesQty']==0:
+                            self.log.info("leavesQty es 0")
+                            return False
+                        self.log.info(f"size a poner : {sizeOrder}")
+                        if round(orden['price'],1) != round(limitBidFuturo1,1) or orden['leavesQty'] != sizeOrder:
+                        #modificar orden
+                            self.log.info("es diferente entonces mando a actualizar")
+                            if not self.paused.is_set():
+                                self.log.warning(f"paused esta activo")
+                                return
+                            self.log.info(f"orden operada = false, enviar a modificar orden")
+                            if orden['leavesQty'] != sizeOrder:
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, 
+                                                        self.botData["futuro1"], sizeOrder, limitBidFuturo1)
+                            else:
+                                sizeOrder = orden['orderQty']
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, 
+                                                        self.botData["futuro1"], sizeOrder, limitBidFuturo1)
+                            self.log.info(f"orden modificada {modificarOrden}")
+                        else:
+                            self.log.info("es lo mismo asi q no actuaklizo ")
+                else:
+                    self.log.info("debo borrar xq no hay futuro2 o pase ask o estoy de primero en el book de futuro2")
+                    if not self.paused.is_set():
+                        self.log.warning(f"paused esta activo")
+                        return
+                    self.log.info(f"orden operada = false, enviar a cancelar orden")
+                    #aqui pasan dos cosas , si esta vacio el book contrario debo borrar esta orden 
+                    #si no esta vacio pero estoy de primero en este book debo borrar la orden contraria si hay
+
+                    if len(self._tickers[self.botData["futuro2"]]["BI"])==0:
+                        self.log.info(f"cancelamos orden xq en futuro2 el book esta vacio ")
+                        cancelarOrden = await self.clientR.cancelar_orden(orden["orderId"], orden["clOrdId"], 1, orden["orderQty"], self.botData["futuro2"])
+                        self.log.info(f"cancelarOrden: {cancelarOrden}")
+                        return
+
+                    self.log.info(f"voy a borrar solo si estoy de primero en este book ")
+                    if orden["price"]==self._tickers[self.botData["futuro1"]]["BI"][0]["price"]:
+                        cancelarHaberla = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 1)
+                        self.log.info(f"orden borrada: {cancelarHaberla}")
+            else: 
+                #no tengo orden la creo 
+                self.log.info("no tengo orden la creo")
+                verificarFuturo1 = True
+                if len(self._tickers[self.botData["futuro1"]]["BI"])==0:
+                    verificarFuturo1 = False
+                verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "BI", self._tickers[self.botData["futuro2"]]["BI"]) 
+                verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "OF", self._tickers[self.botData["paseFuturos"]]["OF"]) 
+                if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
+                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": 0}
                     self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"OF": verificarPase["indiceBookUsar"]}
                     self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": verificarFuturo2["indiceBookUsar"]}
                     self.log.info("si puedo crear orden en futuro1 bid")
                     calcularLimit = await self.calcular_limit_futuro1_bid(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
                     if calcularLimit>0:
                         sizeOrder = await self.get_size_order(self.botData["futuro1"], "BI")
                         limitBidFuturo1 = calcularLimit
@@ -423,10 +452,8 @@ class botTriangulo(taskSeqManager):
                         ordenNueva = await self.clientR.nueva_orden(self.botData["futuro1"], 1, sizeOrder, limitBidFuturo1, 2)
                         self.log.info(f"orden nueva {ordenNueva}")
                 else:
-                    self.log.info("no puedo crearla xq no hay futuro o pase necesario")
-                    if verificarFuturo1["puedoOperar"]==False:
-                        self.log.info("voy a boorar bid1 xq no hay nada en bid2 o es mia la orden")
-                        borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 1 )
+                    self.log.info("no puedo crearla xq no hay futuro o pase necesario o estoy de primero en el otro futuro, pero como no tengo nada en este , entonces no hago nada, xq sino es un ciclo infinito")
+                 
         except Exception as e: 
             self.log.error(f"error en futuro 1 bid: {e}")
     async def get_size_order(self, symbol, side):
@@ -475,66 +502,76 @@ class botTriangulo(taskSeqManager):
                 orden =  verificarOrdenCreada["data"]
                 #es true osea q si tengo orden 
                 #aqui debo verificar primnero q la orden de futuro1 OF no sea mia 
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "OF", self._tickers[self.botData["futuro1"]]["OF"] )
-                if verificarFuturo1["puedoOperar"]==True: 
-                    self.log.info("tengo orden creada en ask1")
-                    verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "OF", self._tickers[self.botData["futuro2"]]["OF"]) 
-                    verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "BI", self._tickers[self.botData["paseFuturos"]]["BI"]) 
-                    if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                        self.log.info("tengo el ask2 y el bid del pase")
-                        self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": verificarFuturo1["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"BI": verificarPase["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": verificarFuturo2["indiceBookUsar"]}
-                        calcularLimit = await self.calcular_limit_futuro1_ask(verificarFuturo1)
-                        if calcularLimit>0:
-                            self.log.info("calcular limit es mayor a 0")
-                            sizeOrder = await self.get_size_order(self.botData["futuro1"], "OF")
-                            limitAskFuturo1 = calcularLimit
-                            self.log.info(f"precio mio {round(orden['price'],1) }")
-                            self.log.info(f"limitAskFuturo1 {round(limitAskFuturo1,1)}")
-                            self.log.info(f"size mio: {orden['leavesQty']}")
-                            if orden['leavesQty']==0:
-                                return False
-                            self.log.info(f"size a poner : {sizeOrder}")
-                            if round(orden['price'],1) != round(limitAskFuturo1,1) or orden['leavesQty'] != sizeOrder:
-                                self.log.info("es diferente entonces mando a actualizar")
-                                if not self.paused.is_set():
-                                    self.log.warning(f"paused esta activo")
-                                    return
-                                if orden['leavesQty'] != sizeOrder:
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1)
-                                    self.log.info(f"orden modificada {modificarOrden}")
-                                else:
-                                    sizeOrder = orden['orderQty']
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1)
-                                    self.log.info(f"orden modificada {modificarOrden}")
-                            else:
-                                self.log.info("es lo mismo asi q no actuaklizo ")
-                    else:
-                        self.log.info("debo borrar xq no hay futuro2 o pase ask ")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        borrarOrden = await  self.clientR.cancelar_orden(orderId = orden['orderId'], clOrdId=orden['clOrdId'], side=2, quantity=orden['leavesQty'], symbol=self.botData["futuro1"])
-                        self.log.info("borrar orden", borrarOrden)
-                else:
-                    self.log.info("o es mi una orden y es mia o no hay ordenes, por ende borro el futuro2 ask, pero no lo hare")
-                    if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                    borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 2)
-            else: 
-                #no tengo orden la creo 
-                self.log.info("no tengo orden la creo")
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "OF", self._tickers[self.botData["futuro1"]]["OF"] )
+                verificarFuturo1 = await self.verificar_primeraOrden_bookVacio(orden["price"], self._tickers[self.botData["futuro1"]]["OF"][0]["price"], self._tickers[self.botData["futuro1"]]["OF"])
+                self.log.info("tengo orden creada en ask1")
                 verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "OF", self._tickers[self.botData["futuro2"]]["OF"]) 
                 verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "BI", self._tickers[self.botData["paseFuturos"]]["BI"]) 
                 if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": verificarFuturo1["indiceBookUsar"]}
+                    self.log.info("tengo el ask2 y el bid del pase")
+                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": 0}
+                    self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"BI": verificarPase["indiceBookUsar"]}
+                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": verificarFuturo2["indiceBookUsar"]}
+                    calcularLimit = await self.calcular_limit_futuro1_ask(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
+                    if calcularLimit>0:
+                        self.log.info("calcular limit es mayor a 0")
+                        sizeOrder = await self.get_size_order(self.botData["futuro1"], "OF")
+                        limitAskFuturo1 = calcularLimit
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitAskFuturo1 {round(limitAskFuturo1,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
+                        if orden['leavesQty']==0:
+                            return False
+                        self.log.info(f"size a poner : {sizeOrder}")
+                        if round(orden['price'],1) != round(limitAskFuturo1,1) or orden['leavesQty'] != sizeOrder:
+                            self.log.info("es diferente entonces mando a actualizar")
+                            if not self.paused.is_set():
+                                self.log.warning(f"paused esta activo")
+                                return
+                            if orden['leavesQty'] != sizeOrder:
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1)
+                                self.log.info(f"orden modificada {modificarOrden}")
+                            else:
+                                sizeOrder = orden['orderQty']
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1)
+                                self.log.info(f"orden modificada {modificarOrden}")
+                        else:
+                            self.log.info("es lo mismo asi q no actuaklizo ")
+                else:
+                    self.log.info("debo borrar xq no hay futuro2 o pase ask ")
+                    if not self.paused.is_set():
+                        self.log.warning(f"paused esta activo")
+                        return
+                    self.log.info(f"voy a borrar solo si estoy de primero en este book ")
+
+                    if len(self._tickers[self.botData["futuro2"]]["OF"])==0:
+                        self.log.info(f"cancelamos orden xq en futuro2 el book esta vacio ")
+                        cancelarOrden = await self.clientR.cancelar_orden(orden["orderId"], orden["clOrdId"], 2, orden["orderQty"], self.botData["futuro2"])
+                        self.log.info(f"cancelarOrden: {cancelarOrden}")
+                        return
+
+                    self.log.info(f"voy a borrar solo si estoy de primero en este book ")
+                    if orden["price"]==self._tickers[self.botData["futuro1"]]["OF"][0]["price"]:
+                        cancelarHaberla = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 2)
+                        self.log.info(f"orden borrada: {cancelarHaberla}")
+                
+            else: 
+                #no tengo orden la creo 
+                self.log.info("no tengo orden la creo")
+                verificarFuturo1 = True
+                if len(self._tickers[self.botData["futuro1"]]["OF"])==0:
+                    verificarFuturo1 = False
+                verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "OF", self._tickers[self.botData["futuro2"]]["OF"]) 
+                verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "BI", self._tickers[self.botData["paseFuturos"]]["BI"]) 
+                if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
+                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": 0}
                     self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"BI": verificarPase["indiceBookUsar"]}
                     self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": verificarFuturo2["indiceBookUsar"]}
                     self.log.info("si puedo crear orden en futuro1 ask")
                     calcularLimit = await self.calcular_limit_futuro1_ask(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
                     if calcularLimit>0:
                         sizeOrder = await self.get_size_order(self.botData["futuro1"], "OF")
                         limitAskFuturo1 = calcularLimit
@@ -547,14 +584,8 @@ class botTriangulo(taskSeqManager):
                         self.log.info("orden nueva ", ordenNueva)
                         #estas ordenes nueva debo ponerles al id_origen el id de la orden q se acaba de guardar 
                 else:
-                    self.log.info("no puedo crearla xq no hay futuro o pase necesario")
-                    if verificarFuturo1["status"]==False:
-                        self.log.info("voy a borrar ask2 xq no hay nada en ask1 o hay una y es mia ")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 2)
-                        self.log.info("borrar orden", borrarOrden)
+                    self.log.info("no puedo crearla xq no hay futuro o pase necesario o estoy de primero en el otro futuro, pero como no tengo nada en este , entonces no hago nada, xq sino es un ciclo infinito")
+                 
         except Exception as e: 
             self.log.error(f"error en futuro1 ask: {e}")
 
@@ -568,66 +599,61 @@ class botTriangulo(taskSeqManager):
                 orden =  verificarOrdenCreada["data"]
                 #es true osea q si tengo orden 
                 #aqui debo verificar primnero q la orden de futuro2 bid no sea mia 
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "BI", self._tickers[self.botData["futuro2"]]["BI"] )
-                if verificarFuturo1["puedoOperar"]==True: 
-                    self.log.info("entonces puedo continuar ")
-                    verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "BI", self._tickers[self.botData["futuro1"]]["BI"]) 
-                    verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "BI", self._tickers[self.botData["paseFuturos"]]["BI"]) 
-                    if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                        self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": verificarFuturo1["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"BI": verificarPase["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": verificarFuturo2["indiceBookUsar"]}
-                        calcularLimit = await self.calcular_limit_futuro2_bid(verificarFuturo1)
-                        if calcularLimit>0:
-                            self.log.info("moficicar")
-                            sizeOrder = await self.get_size_order(self.botData["futuro2"], "BI")
-                            limitBidFuturo2 = calcularLimit
-                            self.log.info(f"precio mio {round(orden['price'],1) }")
-                            self.log.info(f"limitBidFuturo2 {round(limitBidFuturo2,1)}")
-                            self.log.info(f"size mio: {orden['leavesQty']}")
-                            if orden['leavesQty']==0:
-                                return False
-                            self.log.info(f"size a poner : {sizeOrder}")
-                            if round(orden['price'],1) != round(limitBidFuturo2,1) or orden['leavesQty'] != sizeOrder:
-                            #modificar orden
-                                if not self.paused.is_set():
-                                    self.log.warning(f"paused esta activo")
-                                    return
-                                self.log.info(f"orden operada = false, enviar a modificar orden")
-                                self.log.info("es diferente entonces mando a actualizar")
-                                if orden['leavesQty'] != sizeOrder:
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2)
-                                else:
-                                    sizeOrder = orden['orderQty']
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2)
-                                self.log.info(f"orden modificada {modificarOrden}")
+                verificarFuturo1 = await self.verificar_primeraOrden_bookVacio(orden["price"], self._tickers[self.botData["futuro2"]]["BI"][0]["price"], self._tickers[self.botData["futuro2"]]["BI"])
+                self.log.info("entonces puedo continuar ")
+                verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "BI", self._tickers[self.botData["futuro1"]]["BI"]) 
+                verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "BI", self._tickers[self.botData["paseFuturos"]]["BI"]) 
+                if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
+                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": 0}
+                    self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"BI": verificarPase["indiceBookUsar"]}
+                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": verificarFuturo2["indiceBookUsar"]}
+                    calcularLimit = await self.calcular_limit_futuro2_bid(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
+                    if calcularLimit>0:
+                        self.log.info("moficicar")
+                        sizeOrder = await self.get_size_order(self.botData["futuro2"], "BI")
+                        limitBidFuturo2 = calcularLimit
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitBidFuturo2 {round(limitBidFuturo2,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
+                        if orden['leavesQty']==0:
+                            return False
+                        self.log.info(f"size a poner : {sizeOrder}")
+                        if round(orden['price'],1) != round(limitBidFuturo2,1) or orden['leavesQty'] != sizeOrder:
+                        #modificar orden
+                            if not self.paused.is_set():
+                                self.log.warning(f"paused esta activo")
+                                return
+                            self.log.info(f"orden operada = false, enviar a modificar orden")
+                            self.log.info("es diferente entonces mando a actualizar")
+                            if orden['leavesQty'] != sizeOrder:
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2)
                             else:
-                                self.log.info("es lo mismo asi q no actuaklizo ")    
-                    else:
-                        self.log.info("debo borrar xq no hay futuro2 o pase ask ")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        borrarOrden = await self.clientR.cancelar_orden(orden['orderId'], orden['clOrdId'],1,orden['leavesQty'], self.botData["futuro2"])
-                        self.log.info("borrar orden", borrarOrden)
+                                sizeOrder = orden['orderQty']
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2)
+                            self.log.info(f"orden modificada {modificarOrden}")
+                        else:
+                            self.log.info("es lo mismo asi q no actuaklizo ")    
                 else:
-                    self.log.info("o es mi una orden y es mia o no hay ordenes, cancelar futuro1bid")
-                    if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                    borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro1"], 1)
+                    self.log.info("debo borrar xq no hay futuro2 o pase ask pero no hago xq elegi aqui no hacer nada ")
+                    
             else: 
                 self.log.info("no tengo orden la creo")
                 #no tengo orden la creo 
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "BI", self._tickers[self.botData["futuro2"]]["BI"] )
+                verificarFuturo1 = True
+                if len(self._tickers[self.botData["futuro2"]]["BI"])==0:
+                    verificarFuturo1 = False
                 verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "BI", self._tickers[self.botData["futuro2"]]["BI"]) 
                 verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "BI", self._tickers[self.botData["paseFuturos"]]["OF"]) 
                 if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": verificarPase["indiceBookUsar"]}
+                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"BI": 0}
                     self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"BI": verificarPase["indiceBookUsar"]}
                     self.botData["indices_futuros"][self.botData["futuro1"]] = {"BI": verificarFuturo2["indiceBookUsar"]}
                     self.log.info("si puedo crear orden en futuro2 bid")
                     calcularLimit = await self.calcular_limit_futuro2_bid(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
                     if calcularLimit>0:
                         sizeOrder = await self.get_size_order(self.botData["futuro2"], "BI")
                         limitBidFuturo2 = calcularLimit
@@ -639,14 +665,6 @@ class botTriangulo(taskSeqManager):
                         ordenNueva = await self.clientR.nueva_orden(self.botData["futuro2"], 1, sizeOrder, limitBidFuturo2, 2)
                         self.log.info(f"orden nueva {ordenNueva}")
                         
-                else:
-                    self.log.info("no puedo crearla xq no hay futuro o pase necesario")
-                    if verificarFuturo1["status"]==False:
-                        self.log.info("voy a borrar la orden de futuro1 bid xq no hay nada en futuro2 bid o hay una sola orden y es mia")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro1"], 1)
         except Exception as e: 
             self.log.error(f"error en futuro2bid: {e}")
 
@@ -661,67 +679,60 @@ class botTriangulo(taskSeqManager):
                 #es true osea q si tengo orden 
                 #aqui debo verificar primnero q la orden de futuro1 bid no sea mia 
                 self.log.info("voy a verificar futuro2 of")
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "OF", self._tickers[self.botData["futuro2"]]["OF"] )
-                if verificarFuturo1["puedoOperar"]==True: 
-                    self.log.info("verificado status true")
-                    self.log.info("entonces puedo continuar ")
-                    verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "OF", self._tickers[self.botData["futuro1"]]["OF"]) 
-                    verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "OF", self._tickers[self.botData["paseFuturos"]]["OF"]) 
-                    if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                        self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": verificarFuturo1["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"OF": verificarPase["indiceBookUsar"]}
-                        self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": verificarFuturo2["indiceBookUsar"]}
-                        calcularLimit = await self.calcular_limit_futuro2_ask(verificarFuturo1)
-                        if calcularLimit>0:
-                            self.log.info("moficicar")
-                            sizeOrder = await self.get_size_order(self.botData["futuro2"], "OF")
-                            limitAskFuturo2 = calcularLimit
-                            self.log.info(f"precio mio {round(orden['price'],1) }")
-                            self.log.info(f"limitAskFuturo2 {round(limitAskFuturo2,1)}")
-                            self.log.info(f"size mio: {orden['leavesQty']}")
-                            if orden['leavesQty']==0:
-                                return False
-                            self.log.info(f"size a poner : {sizeOrder}")
-                            if round(orden['price'],1) != round(limitAskFuturo2,1) or orden['leavesQty'] != sizeOrder :
-                                #modificar orden
-                                self.log.info("es diferente entonces mando a actualizar")
-                                if not self.paused.is_set():
-                                    self.log.warning(f"paused esta activo")
-                                    return
-                                self.log.info(f"orden operada = false, enviar a modificar orden")
-                                if orden['leavesQty'] != sizeOrder:
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2)
-                                else:
-                                    sizeOrder = orden['orderQty']
-                                    modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2)
-                                self.log.info(f"orden modificada {modificarOrden}")
+                verificarFuturo1 =  await self.verificar_primeraOrden_bookVacio(orden["price"], self._tickers[self.botData["futuro2"]]["OF"][0]["price"], self._tickers[self.botData["futuro2"]]["OF"])
+                self.log.info("verificado status true")
+                self.log.info("entonces puedo continuar ")
+                verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "OF", self._tickers[self.botData["futuro1"]]["OF"]) 
+                verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "OF", self._tickers[self.botData["paseFuturos"]]["OF"]) 
+                if verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
+                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": 0}
+                    self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"OF": verificarPase["indiceBookUsar"]}
+                    self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": verificarFuturo2["indiceBookUsar"]}
+                    calcularLimit = await self.calcular_limit_futuro2_ask(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
+                    if calcularLimit>0:
+                        self.log.info("moficicar")
+                        sizeOrder = await self.get_size_order(self.botData["futuro2"], "OF")
+                        limitAskFuturo2 = calcularLimit
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitAskFuturo2 {round(limitAskFuturo2,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
+                        if orden['leavesQty']==0:
+                            return False
+                        self.log.info(f"size a poner : {sizeOrder}")
+                        if round(orden['price'],1) != round(limitAskFuturo2,1) or orden['leavesQty'] != sizeOrder :
+                            #modificar orden
+                            self.log.info("es diferente entonces mando a actualizar")
+                            if not self.paused.is_set():
+                                self.log.warning(f"paused esta activo")
+                                return
+                            self.log.info(f"orden operada = false, enviar a modificar orden")
+                            if orden['leavesQty'] != sizeOrder:
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2)
                             else:
-                                self.log.info("es lo mismo asi q no actuaklizo ")
-                    else:
-                        self.log.info("debo borrar xq no hay futuro2 o pase ask ")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        borrarOrden = await self.clientR.cancelar_orden(orden['orderId'], orden['clOrdId'], 2,orden['leavesQty'], self.botData["futuro2"])
-                        self.log.info(f"borrar orden {borrarOrden}")
-                else:
-                    self.log.info("o es mi una orden y es mia o no hay ordenes, cancelar futuro1ask ")
-                    if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                    borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro1"], 2)
+                                sizeOrder = orden['orderQty']
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2)
+                            self.log.info(f"orden modificada {modificarOrden}")
+                        else:
+                            self.log.info("es lo mismo asi q no actuaklizo ")
+                
             else: 
                 #no tengo orden la creo 
                 self.log.info("no tengoorden la creo")
-                verificarFuturo1 =  await self.clientR.verificar_ordenes_futuro(self.botData["futuro2"], "OF", self._tickers[self.botData["futuro2"]]["OF"] )
+                verificarFuturo1 = True
+                if len(self._tickers[self.botData["futuro2"]]["OF"])==0:
+                    verificarFuturo1 = False
                 verificarFuturo2 = await self.clientR.verificar_ordenes_futuro(self.botData["futuro1"], "OF", self._tickers[self.botData["futuro1"]]["OF"]) 
                 verificarPase =  await self.clientR.verificar_ordenes_futuro(self.botData["paseFuturos"], "OF", self._tickers[self.botData["paseFuturos"]]["OF"]) 
                 if  verificarFuturo2["puedoOperar"]==True and verificarPase["puedoOperar"]==True:
-                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": verificarPase["indiceBookUsar"]}
+                    self.botData["indices_futuros"][self.botData["futuro2"]] = {"OF": 0}
                     self.botData["indices_futuros"][self.botData["paseFuturos"]] = {"OF": verificarPase["indiceBookUsar"]}
                     self.botData["indices_futuros"][self.botData["futuro1"]] = {"OF": verificarFuturo2["indiceBookUsar"]}
                     self.log.info("si puedo crear orden en futuro2 ask")
                     calcularLimit = await self.calcular_limit_futuro2_ask(verificarFuturo1)
+                    if self.botData["soloEscucharMercado"] == True:
+                        return
                     if calcularLimit>0:
                         sizeOrder = await self.get_size_order(self.botData["futuro2"], "OF")
                         limitAskFuturo2 = calcularLimit
@@ -733,15 +744,6 @@ class botTriangulo(taskSeqManager):
                         ordenNueva = await self.clientR.nueva_orden(self.botData["futuro2"], 2, sizeOrder, limitAskFuturo2, 2)
                         self.log.info(f"orden nueva {ordenNueva}")
                     
-                else:
-                    self.log.info("no puedo crearla xq no hay futuro o pase necesario")
-                    if verificarFuturo1["status"]==False:
-                        self.log.info("voy a borrar ask1 xq no hay nada en ask2 o hay una sola y es mia")
-                        if not self.paused.is_set():
-                            self.log.warning(f"paused esta activo")
-                            return
-                        borrarOrden = await self.clientR.cancelar_orden_haberla(self.botData["futuro2"], 2)
-   
         except Exception as e: 
             self.log.error(f"error en futuro2 ask: {e}")
 
@@ -844,17 +846,17 @@ class botTriangulo(taskSeqManager):
             while not self.stop.is_set():
                 #   self.log.info("estoy en el ciclo inifito del bot")
                 if self.paused.is_set():
-                    if self.botData["soloEscucharMercado"] == False:
-                        self.log.info(f"el bot no esta en pause")
-                        task = await self.obtener_tarea()
-                        if task is not None:
-                            self.log.info(f"el bot tiene tareas")
-                            self.log.info(f" se va ejecutar esta tarea: {task}")
-                            await self.marcar_completada(task)
-                            await self.execute_task(task)
-                            self.log.info(f"se completo la tarea: {task}")
-                        else:
-                            self.log.info(f"el bot no tiene tareas")
+                   
+                    self.log.info(f"el bot no esta en pause")
+                    task = await self.obtener_tarea()
+                    if task is not None:
+                        self.log.info(f"el bot tiene tareas")
+                        self.log.info(f" se va ejecutar esta tarea: {task}")
+                        await self.marcar_completada(task)
+                        await self.execute_task(task)
+                        self.log.info(f"se completo la tarea: {task}")
+                    else:
+                        self.log.info(f"el bot no tiene tareas")
                 else:
                     self.log.info(f"el bot esta en pause")
                 await asyncio.sleep(0.1)
