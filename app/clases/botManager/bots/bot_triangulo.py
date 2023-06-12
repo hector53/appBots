@@ -112,7 +112,7 @@ class botTriangulo(taskSeqManager):
             limitAskFuturo1 = self.futuro1Ask
         elif futuro1Ask ==0:
             self.log.info("no hay ask en el futuro1")
-            limitAskFuturo1 = (futuro2Ask + paseFuturosBid) + self.botData["varGan"]
+            limitAskFuturo1 = (futuro2Ask - paseFuturosBid) + self.botData["varGan"]
         else:
             self.log.info("no hay spread")
             limitTrue =  futuro1Ask-self.botData["varGan"]
@@ -262,7 +262,7 @@ class botTriangulo(taskSeqManager):
             limitBidFuturo2 = futuro2Bid
         elif futuro2Bid==0:
             self.log.info("el bid2 es 0")
-            limitBidFuturo2 = (futuro1Bid - paseFuturosBid) - self.botData["varGan"]
+            limitBidFuturo2 = (futuro1Bid + paseFuturosBid) - self.botData["varGan"]
         else:
             self.log.info("el bid2 es mayor al precio maximo de ganancia")
             limitTrue = futuro2Bid+self.botData["varGan"] #336.3
@@ -349,7 +349,7 @@ class botTriangulo(taskSeqManager):
             self.log.info(f"el book esta vacio")
             return False
 
-        if priceOrder==priceBook:
+        if priceOrder["price"]==priceBook["price"]:
             self.log.info(f"estoy de primero en el book")
             return False 
         self.log.info(f"retorno true xq puedo tomar valor de este book ")
