@@ -6,6 +6,7 @@ import json
 from app import mongo, sesionesFix, ObjectId, logging, datetime
 from datetime import timedelta
 from app import fixM
+from collections import OrderedDict
 log = logging.getLogger(__name__)
 
 
@@ -266,10 +267,14 @@ class BotsController:
                         "cuenta": botE_cuenta,
                         "transactTime": {"$regex": f"^{fecha_actual_mas_4h_str}"}
                     }, {"_id": 0})
-
-
-                    arrayBook=fixM.main_tasks[fix["user"]
-                        ].botManager.main_tasks[botE_id]._tickers
+                    futuro1 = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["futuro1"]
+                    futuro2 = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["futuro2"]
+                    paseFuturos = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["paseFuturos"]
+                    arrayBook=OrderedDict()
+                    arrayBook[futuro1] = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id]._tickers[futuro1]
+                    arrayBook[futuro2] = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id]._tickers[futuro2]
+                    arrayBook[paseFuturos] = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id]._tickers[paseFuturos]
+                    
                     posiciones=fixM.main_tasks[fix["user"]
                         ].botManager.main_tasks[botE_id].botData["posiciones"]
                     posiciones=UtilsController.get_tenencias_bot(posiciones)

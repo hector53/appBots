@@ -178,7 +178,7 @@ class botTriangulo(taskSeqManager):
             limitBidFuturo1 = futuro1Bid
         elif futuro1Bid==0:
             self.log.info("el bid1 es 0")
-            limitBidFuturo1 = (futuro2Bid - paseFuturosAsk) + self.botData["varGan"]
+            limitBidFuturo1 = (futuro2Bid - paseFuturosAsk) - self.botData["varGan"]
         else:
             self.log.info("el bid1 es mayor al precio maximo de ganancia")
             limitBidFuturo1 = precioMaxGanBidFuturo1-self.botData["varGan"]
@@ -262,7 +262,7 @@ class botTriangulo(taskSeqManager):
             limitBidFuturo2 = futuro2Bid
         elif futuro2Bid==0:
             self.log.info("el bid2 es 0")
-            limitBidFuturo2 = (futuro1Bid - paseFuturosBid) + self.botData["varGan"]
+            limitBidFuturo2 = (futuro1Bid - paseFuturosBid) - self.botData["varGan"]
         else:
             self.log.info("el bid2 es mayor al precio maximo de ganancia")
             limitTrue = futuro2Bid+self.botData["varGan"] #336.3
@@ -846,8 +846,7 @@ class botTriangulo(taskSeqManager):
             while not self.stop.is_set():
                 #   self.log.info("estoy en el ciclo inifito del bot")
                 if self.paused.is_set():
-                   
-                    self.log.info(f"el bot no esta en pause")
+                #    self.log.info(f"el bot no esta en pause")
                     task = await self.obtener_tarea()
                     if task is not None:
                         self.log.info(f"el bot tiene tareas")
@@ -855,11 +854,7 @@ class botTriangulo(taskSeqManager):
                         await self.marcar_completada(task)
                         await self.execute_task(task)
                         self.log.info(f"se completo la tarea: {task}")
-                    else:
-                        self.log.info(f"el bot no tiene tareas")
-                else:
-                    self.log.info(f"el bot esta en pause")
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
             #    self.log.info(f"sin task en la cola del bot: {self.id}")
         except Exception as e:
             self.log.error(
@@ -959,29 +954,29 @@ class botTriangulo(taskSeqManager):
                 if orden["side"] == "Buy":
                     self.log.info("Buy")
                     self.log.info("ahora operar la contraria pero en futuro2 OF ")
-                    response = await self.operar_orden_contraria(orden, self.botData["futuro2"], "BI", id_order, 2)
+                    response = await self.operar_orden_contraria(orden, self.botData["futuro2"], "BI", id_order, 2, 1)
                 else:
                     # es sell
                     self.log.info("Sell")
                     self.log.info("ahora operar la contraria pero en futuro2 BI ")
-                    response = await self.operar_orden_contraria(orden, self.botData["futuro2"], "OF", id_order, 1)
+                    response = await self.operar_orden_contraria(orden, self.botData["futuro2"], "OF", id_order, 1, 2)
             else:
                 # es byma48h
                 self.log.info("futuro2")
                 if orden["side"] == "Buy":
                     self.log.info("Buy")
                     self.log.info("ahora operar la contraria pero en futuro1 OF ")
-                    response = await self.operar_orden_contraria(orden, self.botData["futuro1"], "BI", id_order, 2)
+                    response = await self.operar_orden_contraria(orden, self.botData["futuro1"], "BI", id_order, 2, 2)
                 else:
                     # es sell
                     self.log.info("Sell")
                     self.log.info("ahora operar la contraria pero en futuro1 BI ")
-                    response = await self.operar_orden_contraria(orden, self.botData["futuro1"], "OF", id_order, 1)
+                    response = await self.operar_orden_contraria(orden, self.botData["futuro1"], "OF", id_order, 1, 1)
         except Exception as e:
             self.log.error(f"error operando orden : {e}")
         return response
 
-    async def operar_orden_contraria(self, orden, symbolCheck, sideCheck, id_order, sideOrder):
+    async def operar_orden_contraria(self, orden, symbolCheck, sideCheck, id_order, sideOrder, sidePase):
         response = {"llegoRespuesta": False}
         self.log.info(
             f"operar orden contraria del id_bot: {self.clientR.id_bot}")
@@ -1000,7 +995,7 @@ class botTriangulo(taskSeqManager):
                 priceOrder = self._tickers[symbolCheck][sideCheck][0]["price"]
                 precioPase = self._tickers[self.botData["paseFuturos"]][sideCheck][0]["price"]
                 task1 = asyncio.create_task(self.clientR.nueva_orden(symbolCheck, sideOrder, size,priceOrder, "K", clOrdId, 1))
-                task2 = asyncio.create_task(self.clientR.nueva_orden(self.botData["paseFuturos"], sideOrder, size,precioPase,"K", clOrdId, 1))
+                task2 = asyncio.create_task(self.clientR.nueva_orden(self.botData["paseFuturos"], sidePase, size,precioPase,"K", clOrdId, 1))
                 ordenNew = await task1
                 ordenPase = await task2
                 self.log.info(f"llegaron respuestas, ordennew: {ordenNew}, ordenPase: {ordenPase}")
@@ -1019,7 +1014,7 @@ class botTriangulo(taskSeqManager):
                     task1 = asyncio.create_task(self.clientR.nueva_orden(symbolCheck, sideOrder, size, priceOrder, 2, clOrdId, 1))
                     #necesito el precio del pase 
                     precioPase = self._tickers[self.botData["paseFuturos"]][sideCheck][0]["price"]
-                    task2 = asyncio.create_task(self.clientR.nueva_orden(self.botData["paseFuturos"], sideOrder, size, precioPase, 2, clOrdId, 1))
+                    task2 = asyncio.create_task(self.clientR.nueva_orden(self.botData["paseFuturos"], sidePase, size, precioPase, 2, clOrdId, 1))
                    
                     ordenNew = await task1
                     ordenPase = await task2
@@ -1041,7 +1036,7 @@ class botTriangulo(taskSeqManager):
                 #  self.botData["ordenesBot"].append({"idOperada":id_order, "clOrdId": clOrdId, "size": size })
                     task2 = asyncio.create_task(self.clientR.cancelar_orden_haberla(symbolCheck, sideOrder))
                     precioPase = self._tickers[self.botData["paseFuturos"]][sideCheck][0]["price"]
-                    task2 = asyncio.create_task(self.clientR.nueva_orden(self.botData["paseFuturos"], sideOrder, size, precioPase, 2, clOrdId, 1))
+                    task2 = asyncio.create_task(self.clientR.nueva_orden(self.botData["paseFuturos"], sidePase, size, precioPase, 2, clOrdId, 1))
                     ordenNew = await task1
                     ordenPase = await task2
                     self.log.info(f"llegaron respuestas, ordennew: {ordenNew}, ordenPase: {ordenPase}")
