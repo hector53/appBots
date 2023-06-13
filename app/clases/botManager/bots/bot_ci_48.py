@@ -382,7 +382,7 @@ class botCi48(taskSeqManager):
                             self.log.info(f"es modificar orden")
                             #es de modificar por lo tanto verifico la nueva condicional
                             #verificar si estoy de primero 
-                            if priceCI==orden["price"] and (self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
+                            if priceCI==orden["price"] and (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
                                 #si estoy de primero y el primer precio menos el segundo == a minTIck 
                                 self.log.info(f"si estoy de primero y el primer precio menos el segundo == a minTIck")
                                 #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
@@ -449,7 +449,7 @@ class botCi48(taskSeqManager):
                     if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
                         limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
 
-                        if price48==orden["price"] and (self._tickers[self.botData["byma48h"]]["BI"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
+                        if price48==orden["price"] and (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
                                 #si estoy de primero y el primer precio menos el segundo == a minTIck 
                                 self.log.info(f"si estoy de primero y el primer precio menos el segundo == a minTIck")
                                 
