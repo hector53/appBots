@@ -324,7 +324,7 @@ class botCi48(taskSeqManager):
         self.threadCola = None
         self.threadBB = None
 
-    def calculate_limit_asset_price_CI(self, asset_price_48h, size_48h, sideBook, market_price_ci):
+    def calculate_limit_asset_price_CI(self, asset_price_48h, size_48h, sideBook, market_price_ci, orden={}):
         #self.log.info(            f"entrando a calculate_limit_asset_price_CI: {asset_price_48h}, {size_48h}, {sideBook}, {market_price_ci}")
         try:
             annualized_arbitrage_rate = self.minimum_arbitrage_rate
@@ -360,10 +360,24 @@ class botCi48(taskSeqManager):
                     priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
                     if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
                         limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
+                        if len(orden)>0:
+                            #es de modificar por lo tanto verifico la nueva condicional
+                            #verificar si estoy de primero 
+                            if priceCI==orden["price"] and (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
+                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
+                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
+                                limit_asset_price_CI = orden["price"]
                 else:
                     priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
                     if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
                         limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
+                        if len(orden)>0:
+                            #es de modificar por lo tanto verifico la nueva condicional
+                            #verificar si estoy de primero 
+                            if priceCI==orden["price"] and (self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
+                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
+                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
+                                limit_asset_price_CI = orden["price"]
             self.update_limits("CI", limit_asset_price_CI, sideBook)
             dataMd = {"type": "bb", "instrumentId": {
                 "symbol": self.botData["bymaCI"]}, "limit_asset_price_CI": limit_asset_price_CI}
@@ -373,7 +387,7 @@ class botCi48(taskSeqManager):
             self.log.error(f"error calculando limit ci: {e}")
             return 0, 0
 
-    def calculate_limit_asset_price_48h(self, asset_price_CI, size_CI, sideBook):
+    def calculate_limit_asset_price_48h(self, asset_price_CI, size_CI, sideBook, orden={}):
         #self.log.info(            f"entrando a calcuar limit 48: {asset_price_CI}, {size_CI}, {sideBook}")
         try:
             annualized_arbitrage_rate = self.minimum_arbitrage_rate
@@ -395,7 +409,7 @@ class botCi48(taskSeqManager):
             current_date = datetime.datetime.now().date()
             next_day = self.next_business_day(current_date)
             dias_restantes = next_day
-            
+
             limit_asset_price_48h = asset_price_CI + \
                 (annualized_arbitrage_rate *
                  (dias_restantes + 0) * asset_price_CI / 365)
@@ -405,10 +419,23 @@ class botCi48(taskSeqManager):
                     price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
                     if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
                         limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
+
+                        if len(orden)>0:
+                            #es de modificar por lo tanto verifico la nueva condicional
+                            #verificar si estoy de primero 
+                            if price48==orden["price"] and (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
+                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
+                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
+                                limit_asset_price_48h = orden["price"]
                 else:
                     price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
                     if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
                         limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
+
+                        if price48==orden["price"] and (self._tickers[self.botData["byma48h"]]["BI"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
+                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
+                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
+                                limit_asset_price_48h = orden["price"]
 
             self.update_limits("48", limit_asset_price_48h, sideBook)
             dataMd = {"type": "bb", "instrumentId": {
@@ -505,7 +532,7 @@ class botCi48(taskSeqManager):
                     size_CI = self._tickers[self.botData["bymaCI"]
                                             ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_48h(
-                        market_price_CI, size_CI, sideBook)  # calculo el precio y size de la orden
+                        market_price_CI, size_CI, sideBook, orden)  # calculo el precio y size de la orden
                     #self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if limit_price_CI <= 0:
                         #self.log.info(                            "no hago nada xq el precio es menor o igual a 0")
@@ -715,7 +742,7 @@ class botCi48(taskSeqManager):
                     size_48h = self._tickers[self.botData["byma48h"]
                                              ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_CI(
-                        market_price_48h, size_48h, sideBook, market_price_ci)  # calculo el precio y size de la orden
+                        market_price_48h, size_48h, sideBook, market_price_ci, orden)  # calculo el precio y size de la orden
                     #self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if limit_price_CI <= 0:
                         #self.log.info(                            "no hago nada xq el precio es menor o igual a 0")
