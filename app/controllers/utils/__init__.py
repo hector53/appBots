@@ -28,6 +28,7 @@ class UtilsController:
             bot_bb.botData["sizeMax"] = int(opciones["sizeMax"])
             bot_bb.botData["type_side"] = int(opciones["type_side"])
             bot_bb.botData["market"] = opciones["market"]
+            bot_bb.botData["maximizarGanancias"] = opciones["maximizarGanancias"]
             bot_bb.botData["periodoBB"] = opciones["periodoBB"]
             bot_bb.botData["soloEscucharMercado"] = soloEscucharMercado
             bot_bb.botData["ruedaA"]["sizeDisponible"] = int(
@@ -71,6 +72,8 @@ class UtilsController:
             bot_bb.botData["sizeMax"] = int(opciones["sizeMax"])
             bot_bb.botData["soloEscucharMercado"] = soloEscucharMercado
             bot_bb.botData["market"] = opciones["market"]
+            bot_bb.botData["maximizarGanancias"] = opciones["maximizarGanancias"]
+
             bot_bb.botData["ruedaA"]["sizeDisponible"] = int(
                 opciones["sizeMax"])
             bot_bb.botData["ruedaB"]["sizeDisponible"] = int(
@@ -114,6 +117,7 @@ class UtilsController:
             bot.botData["type_side"] = int(opciones["type_side"])
             bot.botData["conBB"] = opciones["conBB"]
             bot.botData["market"] = opciones["market"]
+            bot.botData["maximizarGanancias"] = opciones["maximizarGanancias"]
             bot.botData["porcentual"] = opciones["porcentual"]
             bot.botData["soloEscucharMercado"] = soloEscucharMercado
             bot.botData["ruedaA"]["sizeDisponible"] = int(
@@ -311,6 +315,8 @@ class UtilsController:
 
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["market"] = opciones["market"]
 
+                fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["maximizarGanancias"] = opciones["maximizarGanancias"]
+
                 task = {"type": 0}
                 await fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].add_task(task)
             # ahora guardar los datos en db
@@ -339,6 +345,7 @@ class UtilsController:
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["periodoBB"] = opciones["periodoBB"]
 
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["market"] = opciones["market"]
+                fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["maximizarGanancias"] = opciones["maximizarGanancias"]
 
                 task = {"type": 0}
                 await fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].add_task(task)
@@ -368,6 +375,7 @@ class UtilsController:
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["periodoBB"] = opciones["periodoBB"]
 
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["market"] = opciones["market"]
+                fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["maximizarGanancias"] = opciones["maximizarGanancias"]
 
 
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["editandoBot"] = True

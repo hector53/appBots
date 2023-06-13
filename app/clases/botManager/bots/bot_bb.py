@@ -48,6 +48,7 @@ class botBB(taskSeqManager):
             "bookChangeTime": None,  # la uso para marcar el tiempo despues de un cambio de mercado,
             "symbols2": [bymaCI, byma48h],
             "sizeOnly1": True,
+            "maximizarGanancias": False,
             "pegados": [],
             "contadorTareas": 0,
             # "ordenesBot": [],
@@ -374,6 +375,17 @@ class botBB(taskSeqManager):
                 (annualized_arbitrage_rate *
                  (dias_restantes + 0) / 365) * market_price_ci
             #self.log.info(f"limit_asset_price_CI: {limit_asset_price_CI}")
+
+            if self.botData["maximizarGanancias"]:
+                if sideBook=="BI":
+                    priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
+                    if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
+                else:
+                    priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
+                    if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
+
             self.update_limits("CI", limit_asset_price_CI, sideBook)
             return round(self.redondeo_tick(limit_asset_price_CI, self.botData["minPriceIncrement"]), 2), volume
         except Exception as e:
@@ -409,6 +421,17 @@ class botBB(taskSeqManager):
             limit_asset_price_48h = asset_price_CI + \
                 (annualized_arbitrage_rate *
                  (dias_restantes + 0) * asset_price_CI / 365)
+            
+            if self.botData["maximizarGanancias"]:
+                if sideBook=="BI":
+                    price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
+                    if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
+                else:
+                    price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
+                    if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
+
             self.update_limits("48", limit_asset_price_48h, sideBook)
 
             return round(self.redondeo_tick(limit_asset_price_48h, self.botData["minPriceIncrement"]), 2), volume

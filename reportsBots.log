@@ -1,0 +1,95 @@
+2023-06-13 09:57:47,838 werkzeug  INFO  [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:4000  186 
+2023-06-13 09:57:47,838 werkzeug  INFO  [33mPress CTRL+C to quit[0m  186 
+2023-06-13 09:57:59,040 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:57:59] "GET /api/get_bots/641c54920ae805d7c3df4a64/{"user":"nananonaweb7654","account":"REM7654","active":0,"puertows":"5100"} HTTP/1.1" 200 -  186 
+2023-06-13 09:58:05,372 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:58:05] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 09:58:05,450 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 09:58:05,453 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:58:05] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 09:59:52,825 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:59:52] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 09:59:52,867 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 09:59:52,868 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:59:52] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 09:59:56,980 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:59:56] "OPTIONS /api/editBot HTTP/1.1" 200 -  186 
+2023-06-13 09:59:57,104 app.controllers.bots  INFO  req_obj: {'id_bot': '646e10872e5a3cf35666fc2c', 'opciones': {'maxRate': 2, 'minRate': 1, 'sizeMax': 1, 'market': True, 'maximizarGanancias': True}, 'fix': {'user': 'nananonaweb7654', 'account': 'REM7654', 'active': 0, 'puertows': '5100'}, 'typeEdit': 1, 'type_bot': 1}  138 
+2023-06-13 09:59:57,119 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:59:57] "POST /api/editBot HTTP/1.1" 200 -  186 
+2023-06-13 09:59:57,160 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 09:59:57,161 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 09:59:57] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:00:00,055 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:00:00] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:00:00,112 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:00:00,113 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:00:00] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:53:55,630 werkzeug  INFO  [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:4000  186 
+2023-06-13 10:53:55,630 werkzeug  INFO  [33mPress CTRL+C to quit[0m  186 
+2023-06-13 10:54:00,909 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:54:00] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:54:01,057 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:54:01,059 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:54:01] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:54:19,164 MainFix  ERROR  se cerro el run d ela tarea main fix  46 
+2023-06-13 10:54:19,212 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:54:19] "POST /api/iniciar_fix/new HTTP/1.1" 200 -  186 
+2023-06-13 10:54:19,725 websocket  INFO  Websocket connected  76 
+2023-06-13 10:56:16,881 werkzeug  INFO  [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:4000  186 
+2023-06-13 10:56:16,881 werkzeug  INFO  [33mPress CTRL+C to quit[0m  186 
+2023-06-13 10:56:21,277 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:56:21] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:56:21,425 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:56:21,426 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:56:21] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:56:58,988 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:56:58] "OPTIONS /api/startBot HTTP/1.1" 200 -  186 
+2023-06-13 10:56:59,081 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:56:59] "[31m[1mPOST /api/startBot HTTP/1.1[0m" 401 -  186 
+2023-06-13 10:57:04,590 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:04] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:57:04,663 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:57:04,666 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:04] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:57:13,256 MainFix  ERROR  se cerro el run d ela tarea main fix  46 
+2023-06-13 10:57:13,304 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:13] "POST /api/iniciar_fix/new HTTP/1.1" 200 -  186 
+2023-06-13 10:57:13,755 websocket  INFO  Websocket connected  76 
+2023-06-13 10:57:16,645 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:16] "OPTIONS /api/startBot HTTP/1.1" 200 -  186 
+2023-06-13 10:57:16,954 app.models.db_utils  INFO  existe el bot ejecutandose en la db   15 
+2023-06-13 10:57:16,954 app.controllers.bots  INFO  si existe el bot en la db asi q continuo  43 
+2023-06-13 10:57:16,954 app.controllers.bots  INFO  el bot esta desactivado asi q lo inicio  49 
+2023-06-13 10:57:17,311 app.controllers.utils  INFO  id_fix : nananonaweb7654, id_bot: 646e10872e5a3cf35666fc2c, symbols: ['MERV - XMEV - AL30 - CI', 'MERV - XMEV - AL30 - 48hs'], opciones: {'maxRate': 2, 'minRate': 1, 'sizeMax': 1, 'market': True, 'maximizarGanancias': True}  63 
+2023-06-13 10:57:17,312 app.controllers.utils  INFO  minRate: 1, maxRate: 2, sizeMax: 1  65 
+2023-06-13 10:57:17,312 app.controllers.utils  INFO  symbols: MERV - XMEV - AL30 - CI, MERV - XMEV - AL30 - 48hs  67 
+2023-06-13 10:57:17,313 app.controllers.utils  INFO  botM: <app.clases.botManager.botManager object at 0x000001f3681d8b80>  82 
+2023-06-13 10:57:17,313 app.controllers.utils  INFO  voy a iniciar la tarea en el botManager  83 
+2023-06-13 10:57:17,313 botManager  INFO  entrando a addtask del botManager: <app.clases.botManager.bots.bot_ci_48.botCi48 object at 0x000001f368b0fde0>, ya lo agregue al maintask: {'646e10872e5a3cf35666fc2c': <app.clases.botManager.bots.bot_ci_48.botCi48 object at 0x000001f368b0fde0>}  13 
+2023-06-13 10:57:17,344 botCI48646e10872e5a3cf35666fc2c  WARNING  saliendo de la tarea iniciada en el botmanager pero queda la thread  296 
+2023-06-13 10:57:19,400 client_request_646e10872e5a3cf35666fc2c  INFO  posiciones :{'positions': [], 'status': 'OK'}  392 
+2023-06-13 10:57:19,401 client_request_646e10872e5a3cf35666fc2c  INFO  get get_factor_value  467 
+2023-06-13 10:57:19,420 client_request_646e10872e5a3cf35666fc2c  INFO  factor result: []  475 
+2023-06-13 10:57:19,429 client_request_646e10872e5a3cf35666fc2c  INFO  Suscribir mercado ['MERV - XMEV - AL30 - CI', 'MERV - XMEV - AL30 - 48hs'], de: 646e10872e5a3cf35666fc2c  187 
+2023-06-13 10:57:19,429 client_request_646e10872e5a3cf35666fc2c  INFO  symbolsIterar: ['MERV - XMEV - AL30 - CI', 'MERV - XMEV - AL30 - 48hs']  191 
+2023-06-13 10:57:19,430 client_request_646e10872e5a3cf35666fc2c  INFO  self.mainFix.marketSymbolsSubs: {}  192 
+2023-06-13 10:57:19,430 client_request_646e10872e5a3cf35666fc2c  INFO  symbol: MERV - XMEV - AL30 - CI  194 
+2023-06-13 10:57:19,430 client_request_646e10872e5a3cf35666fc2c  INFO  symbol: MERV - XMEV - AL30 - 48hs  194 
+2023-06-13 10:57:19,430 client_request_646e10872e5a3cf35666fc2c  INFO  self.mainFix.marketSymbolsSubs: {'MERV - XMEV - AL30 - CI': ['646e10872e5a3cf35666fc2c'], 'MERV - XMEV - AL30 - 48hs': ['646e10872e5a3cf35666fc2c']}  204 
+2023-06-13 10:57:19,430 client_request_646e10872e5a3cf35666fc2c  INFO  codigosASuscribir: ['MERV - XMEV - AL30 - CI', 'MERV - XMEV - AL30 - 48hs']  205 
+2023-06-13 10:57:19,703 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:19] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:57:19,704 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:19] "OPTIONS /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:57:19,944 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:57:19,946 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:57:19,947 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:19] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:57:19,975 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:19] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 10:57:19,974 botCI48646e10872e5a3cf35666fc2c  INFO  agregando task: {'type': 0}  18 
+2023-06-13 10:57:20,001 client_request_646e10872e5a3cf35666fc2c  INFO  symbol: MERV - XMEV - AL30 - CI, side: Buy  239 
+2023-06-13 10:57:20,001 client_request_646e10872e5a3cf35666fc2c  INFO  parametrosBusqueda: {'symbol': 'MERV - XMEV - AL30 - CI', 'side': 'Buy', 'ordStatus': 'NEW', 'ordenBot': 0, 'id_bot': '646e10872e5a3cf35666fc2c', 'cuenta': 'REM7654'}  269 
+2023-06-13 10:57:20,031 client_request_646e10872e5a3cf35666fc2c  INFO  no existe orden con esos parametros   277 
+2023-06-13 10:57:20,031 client_request_646e10872e5a3cf35666fc2c  INFO  Verificando órdenes en futuro MERV - XMEV - AL30 - 48hs con side BI  1174 
+2023-06-13 10:57:20,031 client_request_646e10872e5a3cf35666fc2c  INFO  No hay órdenes en este futuro, retornando False  1177 
+2023-06-13 10:57:20,032 client_request_646e10872e5a3cf35666fc2c  INFO  Verificando órdenes en futuro MERV - XMEV - AL30 - CI con side OF  1174 
+2023-06-13 10:57:20,032 client_request_646e10872e5a3cf35666fc2c  INFO  No hay órdenes en este futuro, retornando False  1177 
+2023-06-13 10:57:20,032 botCI48646e10872e5a3cf35666fc2c  ERROR  no hago nada xq no tengo nada en 48h  y no tengo orden creada en CI  810 
+2023-06-13 10:57:20,032 client_request_646e10872e5a3cf35666fc2c  INFO  symbol: MERV - XMEV - AL30 - CI, side: Sell  239 
+2023-06-13 10:57:20,032 client_request_646e10872e5a3cf35666fc2c  INFO  parametrosBusqueda: {'symbol': 'MERV - XMEV - AL30 - CI', 'side': 'Sell', 'ordStatus': 'NEW', 'ordenBot': 0, 'id_bot': '646e10872e5a3cf35666fc2c', 'cuenta': 'REM7654'}  269 
+2023-06-13 10:57:20,037 client_request_646e10872e5a3cf35666fc2c  INFO  no existe orden con esos parametros   277 
+2023-06-13 10:57:20,038 client_request_646e10872e5a3cf35666fc2c  INFO  symbol: MERV - XMEV - AL30 - 48hs, side: Buy  239 
+2023-06-13 10:57:20,038 client_request_646e10872e5a3cf35666fc2c  INFO  parametrosBusqueda: {'symbol': 'MERV - XMEV - AL30 - 48hs', 'side': 'Buy', 'ordStatus': 'NEW', 'ordenBot': 0, 'id_bot': '646e10872e5a3cf35666fc2c', 'cuenta': 'REM7654'}  269 
+2023-06-13 10:57:20,044 client_request_646e10872e5a3cf35666fc2c  INFO  no existe orden con esos parametros   277 
+2023-06-13 10:57:20,045 client_request_646e10872e5a3cf35666fc2c  INFO  symbol: MERV - XMEV - AL30 - 48hs, side: Sell  239 
+2023-06-13 10:57:20,045 client_request_646e10872e5a3cf35666fc2c  INFO  parametrosBusqueda: {'symbol': 'MERV - XMEV - AL30 - 48hs', 'side': 'Sell', 'ordStatus': 'NEW', 'ordenBot': 0, 'id_bot': '646e10872e5a3cf35666fc2c', 'cuenta': 'REM7654'}  269 
+2023-06-13 10:57:20,049 client_request_646e10872e5a3cf35666fc2c  INFO  no existe orden con esos parametros   277 
+2023-06-13 10:57:21,353 app.controllers.utils  INFO  el bot ha sido iniciado  89 
+2023-06-13 10:57:21,415 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:21] "POST /api/startBot HTTP/1.1" 200 -  186 
+2023-06-13 10:57:21,653 app.models.db_utils  INFO  existe el bot ejecutandose en la db   50 
+2023-06-13 10:57:21,655 app.controllers.utils  INFO  entrando a get tenencias bot: {'MERV - XMEV - AL30 - CI': {'BI': 0, 'OF': 0}, 'MERV - XMEV - AL30 - 48hs': {'BI': 0, 'OF': 0}}  395 
+2023-06-13 10:57:21,655 app.controllers.utils  INFO  tenencia: {'BI': 0, 'OF': 0}  399 
+2023-06-13 10:57:21,656 app.controllers.utils  INFO  tenencia: {'BI': 0, 'OF': 0}  399 
+2023-06-13 10:57:21,666 werkzeug  INFO  127.0.0.1 - - [13/Jun/2023 10:57:21] "POST /api/bot_data_charts/6425ab56bce245faf34e7f01 HTTP/1.1" 200 -  186 
+2023-06-13 11:07:28,582 websocket  INFO  [Errno 10054] Se ha forzado la interrupción de una conexión existente por el host remoto - reconnect  76 
+2023-06-13 11:07:28,862 websocket  INFO  reconnect() - retrying in 5 seconds [6 frames in stack]  76 

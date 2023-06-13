@@ -47,6 +47,7 @@ class botCi48(taskSeqManager):
             "llegoTickers": False,  # la uso para saber si ya llegaron los tickers
             "bookChangeTime": None,  # la uso para marcar el tiempo despues de un cambio de mercado,
             "symbols2": [bymaCI, byma48h],
+            "maximizarGanancias": False,
             "sizeOnly1": True,
             "pegados": [],
             "contadorTareas": 0,
@@ -353,6 +354,16 @@ class botCi48(taskSeqManager):
                 (annualized_arbitrage_rate *
                  (dias_restantes + 0) / 365) * market_price_ci
             #self.log.info(f"limit_asset_price_CI: {limit_asset_price_CI}")
+
+            if self.botData["maximizarGanancias"]:
+                if sideBook=="BI":
+                    priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
+                    if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
+                else:
+                    priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
+                    if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
             self.update_limits("CI", limit_asset_price_CI, sideBook)
             dataMd = {"type": "bb", "instrumentId": {
                 "symbol": self.botData["bymaCI"]}, "limit_asset_price_CI": limit_asset_price_CI}
@@ -384,9 +395,21 @@ class botCi48(taskSeqManager):
             current_date = datetime.datetime.now().date()
             next_day = self.next_business_day(current_date)
             dias_restantes = next_day
+            
             limit_asset_price_48h = asset_price_CI + \
                 (annualized_arbitrage_rate *
                  (dias_restantes + 0) * asset_price_CI / 365)
+            
+            if self.botData["maximizarGanancias"]:
+                if sideBook=="BI":
+                    price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
+                    if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
+                else:
+                    price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
+                    if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
+                        limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
+
             self.update_limits("48", limit_asset_price_48h, sideBook)
             dataMd = {"type": "bb", "instrumentId": {
                 "symbol": self.botData["bymaCI"]}, "limit_asset_price_48h": limit_asset_price_48h}

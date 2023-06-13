@@ -48,6 +48,7 @@ class botCiCi(taskSeqManager):
             "bookChangeTime": None,  # la uso para marcar el tiempo despues de un cambio de mercado,
             "symbols2": [bymaCI, byma48h],
             "sizeOnly1": True,
+            "maximizarGanancias": False,
             "pegados": [],
             "contadorTareas": 0,
             # "ordenesBot": [],
