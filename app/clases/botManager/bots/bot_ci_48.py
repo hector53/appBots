@@ -361,7 +361,7 @@ class botCi48(taskSeqManager):
                     self.log.info(f"side bi")
                     priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
                     self.log.info(f"priceCI: {priceCI}")
-                    if priceCI==orden["price"]:
+                    if "price" in orden and  priceCI==orden["price"]:
                         if (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = orden["price"]
                         else:
@@ -376,7 +376,7 @@ class botCi48(taskSeqManager):
                     priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
                     self.log.info(f"priceCI: {priceCI}")
 
-                    if priceCI==orden["price"]:
+                    if "price" in orden and priceCI==orden["price"]:
                         if (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = orden["price"]
                         else:
@@ -430,7 +430,7 @@ class botCi48(taskSeqManager):
                     self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
                     self.log.info(f"price48: {price48}")
-                    if price48==orden["price"]:
+                    if "price" in orden and price48==orden["price"]:
                         if (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
                             limit_asset_price_48h = orden["price"]
                         else:
@@ -444,7 +444,7 @@ class botCi48(taskSeqManager):
                     self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
                     self.log.info(f"price48: {price48}")
-                    if price48==orden["price"]:
+                    if "price" in orden and price48==orden["price"]:
                         if (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = orden["price"]
                         else:
