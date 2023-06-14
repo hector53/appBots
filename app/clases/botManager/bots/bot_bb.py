@@ -381,12 +381,16 @@ class botBB(taskSeqManager):
                 if sideBook=="BI":
                     self.log.info(f"side bi")
                     priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
+                    sizeCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["size"]
                     self.log.info(f"priceCI: {priceCI}")
-                    if priceCI==orden["price"]:
+                    if "price" in orden and  priceCI==orden["price"]:
                         if (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = orden["price"]
                         else:
-                            limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                            if orden["size"]==sizeCI:
+                                limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                            else:
+                                limit_asset_price_CI = orden["price"]
                         #si estoy de primero en el book
                     else:
                         #no estoy de primero en el book
@@ -395,14 +399,18 @@ class botBB(taskSeqManager):
                 else:
                     self.log.info(f"side OF")
                     priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
+                    sizeCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["size"]
                     self.log.info(f"priceCI: {priceCI}")
 
-                    if priceCI==orden["price"]:
+                    if "price" in orden and priceCI==orden["price"]:
                         if (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = orden["price"]
                         else:
-                            limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
-                        #si estoy de primero en el book
+                            if orden["size"]==sizeCI:
+                                limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                            else:
+                                limit_asset_price_CI = orden["price"]
+                        #si estoy de primero en el book 
                     else:
                         #no estoy de primero en el book
                         if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
@@ -448,12 +456,16 @@ class botBB(taskSeqManager):
                 if sideBook=="BI":
                     self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
+                    size48 = self._tickers[self.botData["byma48h"]]["BI"][0]["size"]
                     self.log.info(f"price48: {price48}")
-                    if price48==orden["price"]:
+                    if "price" in orden and price48==orden["price"]:
                         if (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
                             limit_asset_price_48h = orden["price"]
                         else:
-                            limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                            if orden["size"]==size48:
+                                limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                            else:
+                                limit_asset_price_48h = orden["price"]
                         #si estoy de primero en el book
                     else:
                         #no estoy de primero en el book
@@ -462,17 +474,21 @@ class botBB(taskSeqManager):
                 else:
                     self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
+                    size48 = self._tickers[self.botData["byma48h"]]["OF"][0]["size"]
                     self.log.info(f"price48: {price48}")
-                    if price48==orden["price"]:
+                    if "price" in orden and price48==orden["price"]:
                         if (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
-                            limit_asset_price_CI = orden["price"]
+                            limit_asset_price_48h = orden["price"]
                         else:
-                            limit_asset_price_CI = self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                            if orden["size"]==size48:
+                                limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                            else:
+                                limit_asset_price_48h = orden["price"]
                         #si estoy de primero en el book
                     else:
                         #no estoy de primero en el book
-                        if price48>limit_asset_price_CI and (price48-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
-                            limit_asset_price_CI = price48-self.botData["minPriceIncrement"]
+                        if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
 
             self.update_limits("48", limit_asset_price_48h, sideBook)
 
