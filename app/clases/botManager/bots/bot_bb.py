@@ -377,28 +377,36 @@ class botBB(taskSeqManager):
             #self.log.info(f"limit_asset_price_CI: {limit_asset_price_CI}")
 
             if self.botData["maximizarGanancias"]:
+                self.log.info(f"maximizarGanancias: true")
                 if sideBook=="BI":
+                    self.log.info(f"side bi")
                     priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
-                    if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
-                        limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
-                        if len(orden)>0:
-                            #es de modificar por lo tanto verifico la nueva condicional
-                            #verificar si estoy de primero 
-                            if priceCI==orden["price"] and (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
-                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
-                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
-                                limit_asset_price_CI = orden["price"]
+                    self.log.info(f"priceCI: {priceCI}")
+                    if priceCI==orden["price"]:
+                        if (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = orden["price"]
+                        else:
+                            limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
                 else:
+                    self.log.info(f"side OF")
                     priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
-                    if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
-                        limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
-                        if len(orden)>0:
-                            #es de modificar por lo tanto verifico la nueva condicional
-                            #verificar si estoy de primero 
-                            if priceCI==orden["price"] and (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
-                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
-                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
-                                limit_asset_price_CI = orden["price"]
+                    self.log.info(f"priceCI: {priceCI}")
+
+                    if priceCI==orden["price"]:
+                        if (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = orden["price"]
+                        else:
+                            limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
 
             self.update_limits("CI", limit_asset_price_CI, sideBook)
             return round(self.redondeo_tick(limit_asset_price_CI, self.botData["minPriceIncrement"]), 2), volume
@@ -438,26 +446,33 @@ class botBB(taskSeqManager):
             
             if self.botData["maximizarGanancias"]:
                 if sideBook=="BI":
+                    self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
-                    if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
-                        limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
-
-                        if len(orden)>0:
-                            #es de modificar por lo tanto verifico la nueva condicional
-                            #verificar si estoy de primero 
-                            if price48==orden["price"] and (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
-                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
-                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
-                                limit_asset_price_48h = orden["price"]
+                    self.log.info(f"price48: {price48}")
+                    if price48==orden["price"]:
+                        if (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
+                            limit_asset_price_48h = orden["price"]
+                        else:
+                            limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
                 else:
+                    self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
-                    if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
-                        limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
-
-                        if price48==orden["price"] and (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
-                                #si estoy de primero y el primer precio menos el segundo == a minTIck 
-                                #tonces no hago nada, osea retorno el mismo valor del limit que seria el de la orden
-                                limit_asset_price_48h = orden["price"]
+                    self.log.info(f"price48: {price48}")
+                    if price48==orden["price"]:
+                        if (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = orden["price"]
+                        else:
+                            limit_asset_price_CI = self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if price48>limit_asset_price_CI and (price48-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = price48-self.botData["minPriceIncrement"]
 
             self.update_limits("48", limit_asset_price_48h, sideBook)
 
