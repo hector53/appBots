@@ -277,23 +277,17 @@ class botCiCi(taskSeqManager):
             self.log.info(f"iniciando ciclo de tareas con el bot: {self.id}")
             while not self.stop.is_set():
                 #   self.log.info("estoy en el ciclo inifito del bot")
-
                 if self.paused.is_set():
                     self.log.info(f"el bot no esta en pause")
-                    if self.botData["soloEscucharMercado"] == False:
-                        task = await self.obtener_tarea()
-                        if task is not None:
-                            self.log.info(f"el bot tiene tareas")
-                            self.log.info(
-                                f" se va ejecutar esta tarea: {task}")
-                            self.marcar_completada(task)
-                            await self.execute_task(task)
-                            self.log.info(f"se completo la tarea: {task}")
-                        else:
-                            self.log.info(f"el bot no tiene tareas")
-                else:
-                    self.log.info(f"el bot esta en pause")
-                await asyncio.sleep(0.1)
+                    task = await self.obtener_tarea()
+                    if task is not None:
+                        self.log.info(f"el bot tiene tareas")
+                        self.log.info(
+                            f" se va ejecutar esta tarea: {task}")
+                        self.marcar_completada(task)
+                        await self.execute_task(task)
+                        self.log.info(f"se completo la tarea: {task}")
+                await asyncio.sleep(0.01)
             #    self.log.info(f"sin task en la cola del bot: {self.id}")
         except Exception as e:
             self.log.error(
@@ -918,6 +912,8 @@ class botCiCi(taskSeqManager):
                                 "no tengo suficiente size en ci pero tengo algo entonces modifico el size")
                     if not self.paused.is_set():
                         self.log.warning(f"paused esta activo")
+                        return
+                    if self.botData["soloEscucharMercado"] == True:
                         return
                     ordenNueva = await self.clientR.nueva_orden(self.botData["bymaCI"], sideOrder, volume_limit_CI,
                                                                 limit_price_CI, 2)  # creo la orden
