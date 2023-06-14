@@ -364,7 +364,8 @@ class botCi48(taskSeqManager):
                     self.log.info(f"priceCI: {priceCI}")
                     if "price" in orden and  priceCI==orden["price"]:
                         if (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
-                            limit_asset_price_CI = orden["price"]
+                            if priceCI<limit_asset_price_CI:
+                                limit_asset_price_CI = orden["price"]
                         else:
                             if orden["leavesQty"]==sizeCI:
                                 limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
@@ -384,7 +385,8 @@ class botCi48(taskSeqManager):
 
                     if "price" in orden and priceCI==orden["price"]:
                         if (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
-                            limit_asset_price_CI = orden["price"]
+                            if priceCI>limit_asset_price_CI:
+                                limit_asset_price_CI = orden["price"]
                         else:
                             if orden["leavesQty"]==sizeCI:
                                 limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
@@ -443,7 +445,8 @@ class botCi48(taskSeqManager):
                     self.log.info(f"price48: {price48}")
                     if "price" in orden and price48==orden["price"]:
                         if (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
-                            limit_asset_price_48h = orden["price"]
+                            if price48<limit_asset_price_48h:
+                                limit_asset_price_48h = orden["price"]
                         else:
                             if orden["leavesQty"]==size48:
                                 limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
@@ -462,7 +465,8 @@ class botCi48(taskSeqManager):
                     self.log.info(f"price48: {price48}")
                     if "price" in orden and price48==orden["price"]:
                         if (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
-                            limit_asset_price_48h = orden["price"]
+                            if price48>limit_asset_price_48h:
+                                limit_asset_price_48h = orden["price"]
                         else:
                             if orden["leavesQty"]==size48:
                                 limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
