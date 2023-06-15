@@ -917,7 +917,7 @@ class botCi48(taskSeqManager):
             next_day = 4
         else:
             # En otro caso, el próximo día hábil es el siguiente día
-            next_day = 2
+            next_day = 6
 
         return next_day
 

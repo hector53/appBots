@@ -284,7 +284,7 @@ class botCiCi(taskSeqManager):
                         self.log.info(f"el bot tiene tareas")
                         self.log.info(
                             f" se va ejecutar esta tarea: {task}")
-                        self.marcar_completada(task)
+                        await self.marcar_completada(task)
                         await self.execute_task(task)
                         self.log.info(f"se completo la tarea: {task}")
                 await asyncio.sleep(0.01)
@@ -359,9 +359,9 @@ class botCiCi(taskSeqManager):
         self.log.info(f"volume: -{volume}")
         return volume
 
-    def calculate_limit_asset_price_CI(self, asset_price_48h, size_48h, sideBook, asset_price_CI1):
+    def calculate_limit_asset_price_CI(self, asset_price_48h, size_48h, sideBook, orden={}):
         self.log.info(
-            f"entrando a calculate_limit_asset_price_CI: {asset_price_48h}, {size_48h}, {sideBook}")
+            f"entrando a calculate_limit_asset_price_CI en este bot: {asset_price_48h}, {size_48h}, {sideBook}, {orden}")
         try:
             limit_asset_price_CI = 0
             annualized_arbitrage_rate = self.minimum_arbitrage_rate
@@ -380,8 +380,10 @@ class botCiCi(taskSeqManager):
                     volume = self.botData["ruedaA"]["sizeDisponible"]
                 limit_asset_price_CI = asset_price_48h + annualized_arbitrage_rate
                 if self.botData["porcentual"] == True:
-                    limit_asset_price_CI = asset_price_48h * \
+                    limit_asset_price_CI = asset_price_48h / \
                         (annualized_arbitrage_rate+1)
+                    
+
             else:
                 self.log.info(f"sideBook OF")
                 if self.botData["conBB"] == True and self.lowerBB != None:
@@ -396,6 +398,51 @@ class botCiCi(taskSeqManager):
                 if self.botData["porcentual"] == True:
                     limit_asset_price_CI = asset_price_48h / \
                         (annualized_arbitrage_rate+1)
+                    
+
+            if self.botData["maximizarGanancias"]:  
+                self.log.info(f"maximizarGanancias: true")
+                if sideBook=="BI":
+                    self.log.info(f"side bi")
+                    priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
+                    sizeCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["size"]
+                    self.log.info(f"priceCI: {priceCI}")
+                    if "price" in orden and  priceCI==orden["price"]:
+                        if (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
+                            if priceCI<limit_asset_price_CI:
+                                limit_asset_price_CI = orden["price"]
+                        else:
+                            if orden["leavesQty"]==sizeCI:
+                                limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                            else:
+                                if priceCI<limit_asset_price_CI:
+                                    limit_asset_price_CI = orden["price"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
+                else:
+                    self.log.info(f"side OF")
+                    priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
+                    sizeCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["size"]
+                    self.log.info(f"priceCI: {priceCI}")
+
+                    if "price" in orden and priceCI==orden["price"]:
+                        if (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
+                            if priceCI>limit_asset_price_CI:
+                                limit_asset_price_CI = orden["price"]
+                        else:
+                            if orden["leavesQty"]==sizeCI:
+                                limit_asset_price_CI = self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                            else:
+                                if priceCI>limit_asset_price_CI:
+                                    limit_asset_price_CI = orden["price"]
+                        #si estoy de primero en el book 
+                    else:
+                        #no estoy de primero en el book
+                        if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
 
             self.log.info(f"limit_asset_price_CI: {limit_asset_price_CI}")
             self.update_limits("CI", limit_asset_price_CI, sideBook)
@@ -404,7 +451,7 @@ class botCiCi(taskSeqManager):
             self.log.error(f"error calculando limit ci: {e}")
             return 0, 0
 
-    def calculate_limit_asset_price_48h(self, asset_price_CI, size_CI, sideBook, asset_price_CI2):
+    def calculate_limit_asset_price_48h(self, asset_price_CI, size_CI, sideBook, orden={}):
         self.log.info(
             f"entrando a calcular limit 48: {asset_price_CI}, {size_CI}, {sideBook}")
         try:
@@ -425,7 +472,7 @@ class botCiCi(taskSeqManager):
                     volume = self.botData["ruedaA"]["sizeDisponible"]
                 limit_asset_price_48h = asset_price_CI + annualized_arbitrage_rate
                 if self.botData["porcentual"] == True:
-                    limit_asset_price_48h = asset_price_CI / \
+                    limit_asset_price_48h = asset_price_CI * \
                         (annualized_arbitrage_rate+1)
             else:
                 self.log.info(f"sideBook BI")
@@ -441,6 +488,49 @@ class botCiCi(taskSeqManager):
                 if self.botData["porcentual"] == True:
                     limit_asset_price_48h = asset_price_CI * \
                         (annualized_arbitrage_rate+1)
+                    
+            if self.botData["maximizarGanancias"]:
+                if sideBook=="BI":
+                    self.log.info(f"side bi")
+                    price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
+                    size48 = self._tickers[self.botData["byma48h"]]["BI"][0]["size"]
+                    self.log.info(f"price48: {price48}")
+                    if "price" in orden and price48==orden["price"]:
+                        if (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
+                            if price48<limit_asset_price_48h:
+                                limit_asset_price_48h = orden["price"]
+                        else:
+                            if orden["leavesQty"]==size48:
+                                limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["BI"][1]["price"]+self.botData["minPriceIncrement"]
+                            else:
+                                if price48<limit_asset_price_48h:
+                                    limit_asset_price_48h = orden["price"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
+                else:
+                    self.log.info(f"side bi")
+                    price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
+                    size48 = self._tickers[self.botData["byma48h"]]["OF"][0]["size"]
+                    self.log.info(f"price48: {price48}")
+                    if "price" in orden and price48==orden["price"]:
+                        if (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
+                            if price48>limit_asset_price_48h:
+                                limit_asset_price_48h = orden["price"]
+                        else:
+                            if orden["leavesQty"]==size48:
+                                limit_asset_price_48h = self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-self.botData["minPriceIncrement"]
+                            else:
+                                if price48>limit_asset_price_48h:
+                                    limit_asset_price_48h = orden["price"]
+                        #si estoy de primero en el book
+                    else:
+                        #no estoy de primero en el book
+                        if price48>limit_asset_price_48h and (price48-limit_asset_price_48h)>self.botData["minPriceIncrement"]:
+                            limit_asset_price_48h = price48-self.botData["minPriceIncrement"]
+
             self.update_limits("48", limit_asset_price_48h, sideBook)
 
             return round(self.redondeo_tick(limit_asset_price_48h, self.botData["minPriceIncrement"]), 2), volume
@@ -547,7 +637,7 @@ class botCiCi(taskSeqManager):
                     size_CI = self._tickers[self.botData["bymaCI"]
                                             ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_48h(
-                        market_price_CI, size_CI, sideBook, asset_price_CI2)  # calculo el precio y size de la orden
+                        market_price_CI, size_CI, sideBook, orden)  # calculo el precio y size de la orden
                     self.log.info(
                         f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if limit_price_CI <= 0:
@@ -633,7 +723,7 @@ class botCiCi(taskSeqManager):
                     size_CI = self._tickers[self.botData["bymaCI"]
                                             ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_48h(
-                        market_price_CI, size_CI, sideBook, asset_price_CI1)  # calculo el precio y size de la orden
+                        market_price_CI, size_CI, sideBook)  # calculo el precio y size de la orden
                     self.log.info(
                         f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if volume_limit_CI <= 0 or limit_price_CI <= 0:
@@ -784,7 +874,7 @@ class botCiCi(taskSeqManager):
                     size_48h = self._tickers[self.botData["bymaCI"]
                                              ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_CI(
-                        market_price_48h, size_48h, sideBook, asset_price_CI1)  # calculo el precio y size de la orden
+                        market_price_48h, size_48h, sideBook, orden)  # calculo el precio y size de la orden
                     self.log.info(
                         f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if limit_price_CI <= 0:
@@ -842,8 +932,11 @@ class botCiCi(taskSeqManager):
                         if not self.paused.is_set():
                             self.log.warning(f"paused esta activo")
                             return
-                        cancelarHaberla = await self.clientR.cancelar_orden_haberla(self.botData["byma48h"], sideOrder)
-                        self.log.info(f"cancelarHaberla: {cancelarHaberla}")
+                        
+                        if orden["price"]==self._tickers[self.botData["bymaCI"]][sideBook][0]["price"]:
+                            self.log.info(f"mando a borrar 48 xq estoy de primero en el book")
+                            cancelarHaberla = await self.clientR.cancelar_orden_haberla(self.botData["byma48h"], sideOrder)
+                            self.log.info(f"cancelarHaberla: {cancelarHaberla}")
 
             else:
                 self.log.info("no tengo orden creada")
@@ -882,7 +975,7 @@ class botCiCi(taskSeqManager):
                     size_48h = self._tickers[self.botData["byma48h"]
                                              ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_CI(
-                        market_price_48h, size_48h, sideBook, asset_price_CI1)  # calculo el precio y size de la orden
+                        market_price_48h, size_48h, sideBook)  # calculo el precio y size de la orden
                     # muestro el precio y size de la orden
                     self.log.info(
                         f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
@@ -982,7 +1075,7 @@ class botCiCi(taskSeqManager):
         response = False
         try:
             self.log.info(f"contador operadas: {self.botData['ordenOperada']}")
-            await self.actualizar_posiciones(details)
+            asyncio.create_task(self.actualizar_posiciones(details))
             self.log.info(
                 f"verificando orden operada del id_bot: {self.clientR.id_bot}")
             orderId = details["orderId"]
@@ -997,10 +1090,10 @@ class botCiCi(taskSeqManager):
                 self.log.info(
                     f"llego respuesta de orden contraria operada: {order}")
                 if order["llegoRespuesta"] == True:
-                    if order["data"]["reject"] == False:
+                    if order["data"]["reject"] == 'false':
                         self.log.info(
                             f"es filled o colgada ahora si descuento la rueda ")
-                        await self.guardar_mitad_rueda(order["data"], order["lastQty"], 1)
+                        await self.guardar_mitad_rueda(details, details["lastQty"], 1)
                         if order["data"]["ordStatus"] == "NEW":
                             # es colgada enviar notificacion
                             dataMd = {"type": "colgada",
