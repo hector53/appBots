@@ -314,7 +314,7 @@ class BotsController:
                         ].botManager.main_tasks[botE_id].botData["ruedaA"]
                     ruedaB=fixM.main_tasks[fix["user"]
                         ].botManager.main_tasks[botE_id].botData["ruedaB"]
-                    if botE["type_bot"] == 3:
+                    if botE["type_bot"] > 1:
                         botE["dataBB"]=DbUtils.get_data_bb_intradia_hoy(
                             botE_id)
                     botE["limitsPuntas"]=fixM.main_tasks[fix["user"]
