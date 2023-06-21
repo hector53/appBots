@@ -305,6 +305,8 @@ class botBB(taskSeqManager):
         try:
             self.threadCola = Thread(target=self.startCola)
             self.threadCola.start()
+            self.threadBB = Thread(target=self.startLoopBB)
+            self.threadBB.start()
          #   self.threadBB = 
         finally:
             self.log.warning(            "saliendo de la tarea iniciada en el botmanager pero queda la thread")

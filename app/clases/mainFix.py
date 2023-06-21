@@ -232,7 +232,11 @@ class MainFix():
                 #self.log.info(f"balance viejo: {self.balance}")
                 self.balance[task["cuenta"]] = task["balance"]
                 #self.log.info(f"balance nuevo: {self.balance}")
-            
+            """
+            3=order NEW
+            4=order modify
+            5=order cancel
+            """
             if task["type"]==3 or  task["type"]==4 or task["type"]==5 or task["type"]==6: 
                 #es mensaje de una orden nueva 
                 # {"type": 3, "data":details}

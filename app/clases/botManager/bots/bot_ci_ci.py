@@ -251,12 +251,10 @@ class botCiCi(taskSeqManager):
 
     async def run_forever(self):
         try:
-            contadorbb=0
             if await self.tareas_de_inicio() == False:
                 return
             self.log.info(f"iniciando ciclo de tareas con el bot: {self.id}")
             while not self.stop.is_set():
-                contadorbb+=1
                 #   self.log.info("estoy en el ciclo inifito del bot")
                 if self.paused.is_set():
                     self.log.info(f"el bot no esta en pause")
@@ -267,9 +265,7 @@ class botCiCi(taskSeqManager):
                         await self.marcar_completada(task)
                         await self.execute_task(task)
                         self.log.info(f"se completo la tarea: {task}")
-                if contadorbb==1000: 
-                    asyncio.create_task(self.operar_con_bb())
-                    contadorbb = 0
+                
                 await asyncio.sleep(0.01)
             #    self.log.info(f"sin task en la cola del bot: {self.id}")
         except Exception as e:
@@ -282,6 +278,9 @@ class botCiCi(taskSeqManager):
         try:
             self.threadCola = Thread(target=self.startCola)
             self.threadCola.start()
+            if self.botData["conBB"] == True:
+                self.threadBB = Thread(target=self.startLoopBB)
+                self.threadBB.start()
       
         finally:
             self.log.warning(            "saliendo de la tarea iniciada en el botmanager pero queda la thread")
