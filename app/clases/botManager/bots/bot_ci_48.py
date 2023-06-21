@@ -990,6 +990,9 @@ class botCi48(taskSeqManager):
             self.log.error(f"error verificando orden operada: {e}")
         return response
 
+
+    
+
     async def actualizar_posiciones(self, details):
         try:
             #self.log.info(f"actualizando posiciones")

@@ -83,7 +83,7 @@ class botCiCi(taskSeqManager):
     async def guardar_posiciones(self):
         try:
             posiciones = await self.clientR.get_posiciones(self.botData["cuenta"])
-            #self.log.info(f"voy a guardar posiciones: {posiciones}")
+            self.log.info(f"voy a guardar posiciones: {posiciones}")
             for posicion in posiciones:
                 if posicion["tradingSymbol"] == self.botData["bymaCI"]:
                     self.botData["posiciones"][self.botData["bymaCI"]
@@ -99,24 +99,24 @@ class botCiCi(taskSeqManager):
             self.log.error(f"error guardando posiciones: {e}")
 
     async def tareas_de_inicio(self):
-        #self.log.info(f"ejecutando bot id: {self.id} ")
+        self.log.info(f"ejecutando bot id: {self.id} ")
         try:
-            #self.log.info(                "primero voy a guardar las tenencias actuales en mi variable")
+            self.log.info(                "primero voy a guardar las tenencias actuales en mi variable")
             await self.guardar_posiciones()
-            #self.log.info("segundo lo del minIncremente")
+            self.log.info("segundo lo del minIncremente")
             self.botData["minPriceIncrement"] = await self.clientR.get_tick_value(self.botData["bymaCI"])
             self.botData["factor"] = await self.clientR.get_factor_value(self.botData["bymaCI"])
-            #self.log.info(f"tercero suscribir al mercado ")
+            self.log.info(f"tercero suscribir al mercado ")
             suscribir = await self.clientR.suscribir_mercado([self.botData["bymaCI"], self.botData["byma48h"]])
             if suscribir == True:
-                #self.log.info("suscribir mercado ok")
+                self.log.info("suscribir mercado ok")
                 self.botData["botIniciado"] = True
-                #self.log.info(                    f"antes de iniciar la cola, voy a agregar 1 tarea inicial verificar puntas")
-                #self.log.info(                    "bot iniciado ok, ahora si iniciamos la cola de tareas")
+                self.log.info(                    f"antes de iniciar la cola, voy a agregar 1 tarea inicial verificar puntas")
+                self.log.info(                    "bot iniciado ok, ahora si iniciamos la cola de tareas")
                 await self.add_task({"type": 0})
                 return True
             else:
-                #self.log.info("no se pudo suscribir al mercado")
+                self.log.info("no se pudo suscribir al mercado")
                 self.botData["botIniciado"] = False
                 return False
         except Exception as e:
@@ -126,7 +126,7 @@ class botCiCi(taskSeqManager):
     async def operar_con_bb(self):
         try:
             # await self.clientR.esperar_orden_operada()
-            ##self.log.info("entrando a operar con bb")
+            self.log.info("entrando a operar con bb")
             # necesito captura de el last q invetamos de ci y 48
             # necesito las 4 puntas del book guardarlas
             symbolCi = self.botData["bymaCI"]
@@ -135,10 +135,10 @@ class botCiCi(taskSeqManager):
             price_ci_of = self._tickers[symbolCi]["OF"][0]["price"]
             price_48_bi = self._tickers[symbol48]["BI"][0]["price"]
             price_48_of = self._tickers[symbol48]["OF"][0]["price"]
-            ##self.log.info(f"price_ci_bi: {price_ci_bi}")
-            ##self.log.info(f"price_ci_of: {price_ci_of}")
-            ##self.log.info(f"price_48_bi: {price_48_bi}")
-            ##self.log.info(f"price_48_of: {price_48_of}")
+            #self.log.info(f"price_ci_bi: {price_ci_bi}")
+            #self.log.info(f"price_ci_of: {price_ci_of}")
+            #self.log.info(f"price_48_bi: {price_48_bi}")
+            #self.log.info(f"price_48_of: {price_48_of}")
 
             # aqui traigo de la db estos datos
             bbDataUL = await self.clientR.get_intradia_hoy()
@@ -147,8 +147,8 @@ class botCiCi(taskSeqManager):
                 return
             bb_ci_actual = (price_ci_bi + price_ci_of) / 2
             bb_48_actual = (price_48_bi + price_48_of) / 2
-            ##self.log.info(f"bb_ci: {bb_ci_actual}")
-            ##self.log.info(f"bb_48: {bb_48_actual}")
+            #self.log.info(f"bb_ci: {bb_ci_actual}")
+            #self.log.info(f"bb_48: {bb_48_actual}")
             bb_ci_lista = []
             bb_48_lista = []
             if len(bbDataUL) > 0:
@@ -162,38 +162,38 @@ class botCiCi(taskSeqManager):
             bb_48_lista.append(bb_48_actual)
          #   self.bb_ci.append(bb_ci_actual)
           #  self.bb_48.append(bb_48_actual)
-            ##self.log.info(f"bb_ci_lista: {bb_ci_lista}")
-            ##self.log.info(f"bb_48_lista: {bb_48_lista}")
+            #self.log.info(f"bb_ci_lista: {bb_ci_lista}")
+            #self.log.info(f"bb_48_lista: {bb_48_lista}")
             periodoBB = self.botData["periodoBB"]
 
             asset_price_48h = bb_48_lista[-periodoBB:]
             asset_price_CI = bb_ci_lista[-periodoBB:]
-            ##self.log.info(f"asset_price_48h: {asset_price_48h}")
-            ##self.log.info(f"asset_price_CI: {asset_price_CI}")
+            #self.log.info(f"asset_price_48h: {asset_price_48h}")
+            #self.log.info(f"asset_price_CI: {asset_price_CI}")
             current_date = datetime.datetime.now().date()
-            ##self.log.info(f"current_date: {current_date}")
+            #self.log.info(f"current_date: {current_date}")
             next_day = self.next_business_day(current_date)
-            ##self.log.info(f"next_day: {next_day}")
+            #self.log.info(f"next_day: {next_day}")
             dias_restantes = next_day
-            ##self.log.info(f"dias_restantes: {dias_restantes}")
+            #self.log.info(f"dias_restantes: {dias_restantes}")
             close_prices = [((asset_price_48h[i] - asset_price_CI[i]) / asset_price_CI[i]) for i in range(len(asset_price_48h))]
-            ##self.log.info(f"close_prices: {close_prices}")
+            #self.log.info(f"close_prices: {close_prices}")
 
             if len(close_prices) < 2:
-                ##self.log.info(f"close prices < 2")
+                #self.log.info(f"close prices < 2")
                 return
             mean = statistics.mean(close_prices)
             std = statistics.stdev(close_prices)
-            upper = mean + (std * self.maximum_arbitrage_rate) + 0.05
+            upper = mean + (std * self.maximum_arbitrage_rate) 
             self.upperBB = upper
-            lower = mean - (std * self.minimum_arbitrage_rate) - 0.05
+            lower = mean - (std * self.minimum_arbitrage_rate) 
             self.lowerBB = lower
-            ##self.log.info(f"upper: {upper}")
-            ##self.log.info(f"lower: {lower}")
+            #self.log.info(f"upper: {upper}")
+            #self.log.info(f"lower: {lower}")
             latest_asset_price_48h = asset_price_48h[-1]
             latest_asset_price_ci = asset_price_CI[-1]
-            ##self.log.info(f"latest_asset_price_48h: {latest_asset_price_48h}")
-            ##self.log.info(f"latest_asset_price_ci: {latest_asset_price_ci}")
+            #self.log.info(f"latest_asset_price_48h: {latest_asset_price_48h}")
+            #self.log.info(f"latest_asset_price_ci: {latest_asset_price_ci}")
             # limit BID CI: Escuchas BID 48h y ASK CI para el calculo
             latest_limit_asset_price_CI_BID = price_48_bi / (upper +1)
             latest_limit_asset_price_CI_ASK = price_48_of / (lower+1)
@@ -204,7 +204,7 @@ class botCiCi(taskSeqManager):
             """
             
             """
-            ##self.log.info(                f"        upper: {upper}            lower: {lower}            media: {close_prices[-1:]}            bid_estrategia: {bid_estrategia}            ask_estrategia: {ask_estrategia}          ")
+            #self.log.info(                f"        upper: {upper}            lower: {lower}            media: {close_prices[-1:]}            bid_estrategia: {bid_estrategia}            ask_estrategia: {ask_estrategia}          ")
             bookBB = {
                 "price_ci_bi": price_ci_bi,
                 "price_ci_of": price_ci_of,
@@ -212,7 +212,7 @@ class botCiCi(taskSeqManager):
                 "price_48_of": price_48_of
             }
 
-            ##self.log.info(f"bookBB: {bookBB}")
+            #self.log.info(f"bookBB: {bookBB}")
             dataBB = {
                 "label": str(datetime.datetime.now()),
                 "upper": upper,
@@ -221,7 +221,7 @@ class botCiCi(taskSeqManager):
                 "bid_estrategia": bid_estrategia,
                 "ask_estrategia": ask_estrategia,
             }
-            ##self.log.info(f"dataBB: {dataBB}")
+            #self.log.info(f"dataBB: {dataBB}")
             limitsBB = {
                 "bi_ci": latest_limit_asset_price_CI_BID,
                 "of_ci": latest_limit_asset_price_CI_ASK,
@@ -229,7 +229,7 @@ class botCiCi(taskSeqManager):
                 "of_48": latest_limit_asset_price_48h_ASK
             }
             self.botData["limitsBB"] = limitsBB
-            ##self.log.info(f"limitsBB: {limitsBB}")
+            #self.log.info(f"limitsBB: {limitsBB}")
             captureDatosBB = {
                 "fecha": datetime.datetime.today().date(),
                 "book": bookBB,
@@ -239,7 +239,7 @@ class botCiCi(taskSeqManager):
                 "bb_48": bb_48_actual
             }
           #  self.capture_datos_bb = captureDatosBB
-            ##self.log.info(f"voy a guardar datos intradia: {captureDatosBB}")
+            #self.log.info(f"voy a guardar datos intradia: {captureDatosBB}")
             await self.clientR.guardar_datos_bb_intradia(captureDatosBB)
             # if self.botData["soloEscucharMercado"]==True:
             dataMd = {"type": "bb", "symbolTicker": self.botData["bymaCI"]}
@@ -254,24 +254,24 @@ class botCiCi(taskSeqManager):
             contadorbb=0
             if await self.tareas_de_inicio() == False:
                 return
-            #self.log.info(f"iniciando ciclo de tareas con el bot: {self.id}")
+            self.log.info(f"iniciando ciclo de tareas con el bot: {self.id}")
             while not self.stop.is_set():
                 contadorbb+=1
-                #   #self.log.info("estoy en el ciclo inifito del bot")
+                #   self.log.info("estoy en el ciclo inifito del bot")
                 if self.paused.is_set():
-                    #self.log.info(f"el bot no esta en pause")
+                    self.log.info(f"el bot no esta en pause")
                     task = await self.obtener_tarea()
                     if task is not None:
-                        #self.log.info(f"el bot tiene tareas")
-                        #self.log.info(                            f" se va ejecutar esta tarea: {task}")
+                        self.log.info(f"el bot tiene tareas")
+                        self.log.info(                            f" se va ejecutar esta tarea: {task}")
                         await self.marcar_completada(task)
                         await self.execute_task(task)
-                        #self.log.info(f"se completo la tarea: {task}")
+                        self.log.info(f"se completo la tarea: {task}")
                 if contadorbb==1000: 
                     asyncio.create_task(self.operar_con_bb())
                     contadorbb = 0
                 await asyncio.sleep(0.01)
-            #    #self.log.info(f"sin task en la cola del bot: {self.id}")
+            #    self.log.info(f"sin task en la cola del bot: {self.id}")
         except Exception as e:
             self.log.error(
                 f"error en el ciclo run_forever del botBB con id: {self.id} , {e}")
@@ -297,12 +297,12 @@ class botCiCi(taskSeqManager):
     async def run_forever_bb(self):
         try:
             while not self.stop.is_set():
-                #self.log.info("estoy en el ciclo inifito del bot BB")
+                self.log.info("estoy en el ciclo inifito del bot BB")
          #       await self.pausedBB.wait()
                 if self.paused.is_set():
                     await self.operar_con_bb()
                 await asyncio.sleep(10)
-            #    #self.log.info(f"sin task en la cola del bot: {self.id}")
+            #    self.log.info(f"sin task en la cola del bot: {self.id}")
         except Exception as e:
             self.log.error(
                 f"error en el ciclo run_forever del botBB con id: {self.id} , {e}")
@@ -319,9 +319,9 @@ class botCiCi(taskSeqManager):
 
     async def execute_task(self, task):
         # Do something with the task
-        #self.log.info(f"Executing task: {task}, en bot: {self.id}")
+        self.log.info(f"Executing task: {task}, en bot: {self.id}")
         if task["type"] == 0:
-            #self.log.info(f"aqui si verificamos puntas")
+            self.log.info(f"aqui si verificamos puntas")
             await self.verificar_puntas()
 
     async def detenerBot(self):
@@ -330,26 +330,60 @@ class botCiCi(taskSeqManager):
         self.threadBB = None
 
     def get_volume_ci1_ci2(self, size, price, price2):
-        #self.log.info(            f"entrando a get_volume_ci1_ci2: {size}, {price}, {price2} ")
+        self.log.info(            f"entrando a get_volume_ci1_ci2: {size}, {price}, {price2} ")
         volume = round((size * price) / price2)
-        #self.log.info(f"volume: -{volume}")
+        self.log.info(f"volume: -{volume}")
         return volume
+    
+    async def guardar_mitad_rueda2(self, details, lastQty, descontar=0, sizePendiente=0):
+        self.log.info("guardar_mitad_rueda")
+        try:
+            ruedaType = "ruedaA"
+            ruedaContraria = "ruedaB"
+            if details["symbol"] == self.botData["byma48h"] and details["side"] == "Buy":
+                ruedaType = "ruedaB"
+                ruedaContraria = "ruedaA"
+            elif details["symbol"] == self.botData["bymaCI"] and details["side"] == "Sell":
+                ruedaType = "ruedaB"
+                ruedaContraria = "ruedaA"
+            self.log.info(f"ruedaType: {ruedaType}")
+
+            self.log.info("guardar orden en el lado de la rueda")
+            self.log.info(
+                f"ordenes de la rueda: {self.botData[ruedaType]['ordenes']}")
+
+            if descontar == 1:
+                self.log.info("descontar size disponible")
+                self.botData[ruedaType]["sizeDisponible"] = self.botData[ruedaType]["sizeDisponible"] - lastQty
+                self.log.info(
+                    f"size disponible: {self.botData[ruedaType]['sizeDisponible']}")
+
+                # Desde aca inventa
+                self.log.info("calcular y sumar size disponible en rueda contraria")
+                price1 = details['price']
+                price2 = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]  # You need to adjust this line based on where you're storing the price information
+
+                # Calculate the size based on the price and quantity
+                new_size = self.get_volume_ci1_ci2(lastQty, price1, price2)
+                self.botData[ruedaContraria]["sizeDisponible"] = self.botData[ruedaContraria]["sizeDisponible"] + new_size
+        except Exception as e:
+            self.log.error(f"error guardando mitad rueda:{e}")
 
     def calculate_limit_asset_price_CI(self, asset_price_48h, size_48h, sideBook, orden={}):
-        #self.log.info(            f"entrando a calculate_limit_asset_price_CI en este bot: {asset_price_48h}, {size_48h}, {sideBook}, {orden}")
+        self.log.info(            f"entrando a calculate_limit_asset_price_CI en este bot: {asset_price_48h}, {size_48h}, {sideBook}, {orden}")
         try:
             limit_asset_price_CI = 0
             annualized_arbitrage_rate = self.minimum_arbitrage_rate
             volume = self.get_volume(size_48h)
-            #self.log.info(f"volume: {volume}")
+            self.log.info(f"volume: {volume}")
             if sideBook == "BI":
-                #self.log.info(f"sideBook BI")
+                self.log.info(f"sideBook BI")
                 annualized_arbitrage_rate = self.maximum_arbitrage_rate
                 if self.botData["conBB"] == True and self.upperBB != None:
                     annualized_arbitrage_rate = self.upperBB
                 if volume > self.botData["ruedaA"]["sizeDisponible"]:
-                    #self.log.info(                        f"volume>self.botData['ruedaA']['sizeDisponible']")
-                    #self.log.info(                        f"sizeDisponible ruedaA: {self.botData['ruedaA']['sizeDisponible']}")
+                    self.log.info(                        f"volume>self.botData['ruedaA']['sizeDisponible']")
+                    self.log.info(                        f"sizeDisponible ruedaA: {self.botData['ruedaA']['sizeDisponible']}")
                     volume = self.botData["ruedaA"]["sizeDisponible"]
                 limit_asset_price_CI = asset_price_48h + annualized_arbitrage_rate
                 if self.botData["porcentual"] == True:
@@ -357,12 +391,12 @@ class botCiCi(taskSeqManager):
                         (annualized_arbitrage_rate+1)
                     
             else:
-                #self.log.info(f"sideBook OF")
+                self.log.info(f"sideBook OF")
                 if self.botData["conBB"] == True and self.lowerBB != None:
                     annualized_arbitrage_rate = self.lowerBB
                 if volume > self.botData["ruedaB"]["sizeDisponible"]:
-                    #self.log.info(                        f"volume>self.botData['ruedaB']['sizeDisponible']")
-                    #self.log.info(                        f"sizeDisponible ruedaB: {self.botData['ruedaB']['sizeDisponible']}")
+                    self.log.info(                        f"volume>self.botData['ruedaB']['sizeDisponible']")
+                    self.log.info(                        f"sizeDisponible ruedaB: {self.botData['ruedaB']['sizeDisponible']}")
                     volume = self.botData["ruedaB"]["sizeDisponible"]
                 limit_asset_price_CI = asset_price_48h - annualized_arbitrage_rate
                 if self.botData["porcentual"] == True:
@@ -371,12 +405,12 @@ class botCiCi(taskSeqManager):
                     
 
             if self.botData["maximizarGanancias"]:  
-                #self.log.info(f"maximizarGanancias: true")
+                self.log.info(f"maximizarGanancias: true")
                 if sideBook=="BI":
-                    #self.log.info(f"side bi")
+                    self.log.info(f"side bi")
                     priceCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["price"]
                     sizeCI = self._tickers[self.botData["bymaCI"]]["BI"][0]["size"]
-                    #self.log.info(f"priceCI: {priceCI}")
+                    self.log.info(f"priceCI: {priceCI}")
                     if "price" in orden and  priceCI==orden["price"]:
                         if (priceCI-self._tickers[self.botData["bymaCI"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
                             if priceCI<limit_asset_price_CI:
@@ -393,10 +427,10 @@ class botCiCi(taskSeqManager):
                         if priceCI<limit_asset_price_CI and (limit_asset_price_CI-priceCI)>self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = priceCI+self.botData["minPriceIncrement"]
                 else:
-                    #self.log.info(f"side OF")
+                    self.log.info(f"side OF")
                     priceCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["price"]
                     sizeCI = self._tickers[self.botData["bymaCI"]]["OF"][0]["size"]
-                    #self.log.info(f"priceCI: {priceCI}")
+                    self.log.info(f"priceCI: {priceCI}")
 
                     if "price" in orden and priceCI==orden["price"]:
                         if (self._tickers[self.botData["bymaCI"]]["OF"][1]["price"]-priceCI)==self.botData["minPriceIncrement"]:
@@ -414,7 +448,7 @@ class botCiCi(taskSeqManager):
                         if priceCI>limit_asset_price_CI and (priceCI-limit_asset_price_CI)>self.botData["minPriceIncrement"]:
                             limit_asset_price_CI = priceCI-self.botData["minPriceIncrement"]
 
-            #self.log.info(f"limit_asset_price_CI: {limit_asset_price_CI}")
+            self.log.info(f"limit_asset_price_CI: {limit_asset_price_CI}")
             self.update_limits("CI", limit_asset_price_CI, sideBook)
             return round(self.redondeo_tick(limit_asset_price_CI, self.botData["minPriceIncrement"]), 2), volume
         except Exception as e:
@@ -422,32 +456,32 @@ class botCiCi(taskSeqManager):
             return 0, 0
 
     def calculate_limit_asset_price_48h(self, asset_price_CI, size_CI, sideBook, orden={}):
-        #self.log.info(            f"entrando a calcular limit 48: {asset_price_CI}, {size_CI}, {sideBook}")
+        self.log.info(            f"entrando a calcular limit 48: {asset_price_CI}, {size_CI}, {sideBook}")
         try:
             annualized_arbitrage_rate = self.minimum_arbitrage_rate
             limit_asset_price_48h = 0
             volume = size_CI
-            #self.log.info(f"volume: {volume}")
+            self.log.info(f"volume: {volume}")
             if sideBook == "OF":
-                #self.log.info(f"sideBook OF")
+                self.log.info(f"sideBook OF")
                 annualized_arbitrage_rate = self.maximum_arbitrage_rate
                 if self.botData["conBB"] == True and self.upperBB != None:
                     annualized_arbitrage_rate = self.upperBB
                 if volume > self.botData["ruedaA"]["sizeDisponible"]:
-                    #self.log.info(                        f"volume>self.botData['ruedaA']['sizeDisponible']")
-                    #self.log.info(                        f"sizeDisponible ruedaA: {self.botData['ruedaA']['sizeDisponible']}")
+                    self.log.info(                        f"volume>self.botData['ruedaA']['sizeDisponible']")
+                    self.log.info(                        f"sizeDisponible ruedaA: {self.botData['ruedaA']['sizeDisponible']}")
                     volume = self.botData["ruedaA"]["sizeDisponible"]
                 limit_asset_price_48h = asset_price_CI + annualized_arbitrage_rate
                 if self.botData["porcentual"] == True:
                     limit_asset_price_48h = asset_price_CI * \
                         (annualized_arbitrage_rate+1)
             else:
-                #self.log.info(f"sideBook BI")
+                self.log.info(f"sideBook BI")
                 if self.botData["conBB"] == True and self.lowerBB != None:
                     annualized_arbitrage_rate = self.lowerBB
                 if volume > self.botData["ruedaB"]["sizeDisponible"]:
-                    #self.log.info(                        f"volume>self.botData['ruedaB']['sizeDisponible']")
-                    #self.log.info(                        f"sizeDisponible ruedaB: {self.botData['ruedaB']['sizeDisponible']}")
+                    self.log.info(                        f"volume>self.botData['ruedaB']['sizeDisponible']")
+                    self.log.info(                        f"sizeDisponible ruedaB: {self.botData['ruedaB']['sizeDisponible']}")
                     volume = self.botData["ruedaB"]["sizeDisponible"]
                 limit_asset_price_48h = asset_price_CI - annualized_arbitrage_rate
                 if self.botData["porcentual"] == True:
@@ -456,10 +490,10 @@ class botCiCi(taskSeqManager):
                     
             if self.botData["maximizarGanancias"]:
                 if sideBook=="BI":
-                    #self.log.info(f"side bi")
+                    self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["BI"][0]["price"]
                     size48 = self._tickers[self.botData["byma48h"]]["BI"][0]["size"]
-                    #self.log.info(f"price48: {price48}")
+                    self.log.info(f"price48: {price48}")
                     if "price" in orden and price48==orden["price"]:
                         if (price48-self._tickers[self.botData["byma48h"]]["BI"][1]["price"])==self.botData["minPriceIncrement"]:
                             if price48<limit_asset_price_48h:
@@ -476,10 +510,10 @@ class botCiCi(taskSeqManager):
                         if price48<limit_asset_price_48h and (limit_asset_price_48h-price48)>self.botData["minPriceIncrement"]:
                             limit_asset_price_48h = price48+self.botData["minPriceIncrement"]
                 else:
-                    #self.log.info(f"side bi")
+                    self.log.info(f"side bi")
                     price48 = self._tickers[self.botData["byma48h"]]["OF"][0]["price"]
                     size48 = self._tickers[self.botData["byma48h"]]["OF"][0]["size"]
-                    #self.log.info(f"price48: {price48}")
+                    self.log.info(f"price48: {price48}")
                     if "price" in orden and price48==orden["price"]:
                         if (self._tickers[self.botData["byma48h"]]["OF"][1]["price"]-price48)==self.botData["minPriceIncrement"]:
                             if price48>limit_asset_price_48h:
@@ -507,20 +541,20 @@ class botCiCi(taskSeqManager):
         response = False
         if symbol == self.botData["byma48h"]:
             if side == "Buy":
-                #self.log.info(                    f"es rueda b, size disponible: {self.botData['ruedaB']['sizeDisponible']}")
+                self.log.info(                    f"es rueda b, size disponible: {self.botData['ruedaB']['sizeDisponible']}")
                 if self.botData['ruedaB']['sizeDisponible'] == 0:
                     # cancelar orden haberla
-                    #self.log.info(f"envio a cancelar orden haberla")
+                    self.log.info(f"envio a cancelar orden haberla")
                     if not self.paused.is_set():
                         self.log.warning(f"paused esta activo")
                         return
                     cancelarOrden = await self.clientR.cancelar_orden_haberla(symbol, 1)
                     response = True
             else:
-                #self.log.info(                    f"es rueda a, size disponible: {self.botData['ruedaA']['sizeDisponible']}")
+                self.log.info(                    f"es rueda a, size disponible: {self.botData['ruedaA']['sizeDisponible']}")
 
                 if self.botData['ruedaA']['sizeDisponible'] == 0:
-                    #self.log.info(f"envio a cancelar orden haberla")
+                    self.log.info(f"envio a cancelar orden haberla")
                     # cancelar orden haberla
                     if not self.paused.is_set():
                         self.log.warning(f"paused esta activo")
@@ -529,20 +563,20 @@ class botCiCi(taskSeqManager):
                     response = True
         else:
             if side == "Buy":
-                #self.log.info(                    f"es rueda a, size disponible: {self.botData['ruedaA']['sizeDisponible']}")
+                self.log.info(                    f"es rueda a, size disponible: {self.botData['ruedaA']['sizeDisponible']}")
                 if self.botData['ruedaA']['sizeDisponible'] == 0:
                     # cancelar orden haberla
-                    #self.log.info(f"envio a cancelar orden haberla")
+                    self.log.info(f"envio a cancelar orden haberla")
                     if not self.paused.is_set():
                         self.log.warning(f"paused esta activo")
                         return
                     cancelarOrden = await self.clientR.cancelar_orden_haberla(symbol, 1)
                     response = True
             else:
-                #self.log.info(                    f"es rueda b, size disponible: {self.botData['ruedaB']['sizeDisponible']}")
+                self.log.info(                    f"es rueda b, size disponible: {self.botData['ruedaB']['sizeDisponible']}")
                 if self.botData['ruedaB']['sizeDisponible'] == 0:
                     # cancelar orden haberla
-                    #self.log.info(f"envio a cancelar orden haberla")
+                    self.log.info(f"envio a cancelar orden haberla")
                     if not self.paused.is_set():
                         self.log.warning(f"paused esta activo")
                         return
@@ -551,9 +585,9 @@ class botCiCi(taskSeqManager):
         return response
 
     async def verificar_48h(self, side):
-        #self.log.info(f"book: {self._tickers}")
+        self.log.info(f"book: {self._tickers}")
         try:
-            #self.log.info(f"ver botData: {self.botData}")
+            self.log.info(f"ver botData: {self.botData}")
             sideText = "Buy"
             sideBook = "BI"
             sideOrder = 1
@@ -562,7 +596,7 @@ class botCiCi(taskSeqManager):
                 sideBook = "OF"
                 sideOrder = 2
 
-            #self.log.info(f"entrando a verificar 48h: {side}")
+            self.log.info(f"entrando a verificar 48h: {side}")
             # await self.clientR.esperar_orden_operada()
             # necesito verificar si tengo una orden creada , y de ser asi modificar y sino crear
             # aqui busco en db si tengo una orden limit creada en el book byma48h
@@ -571,7 +605,7 @@ class botCiCi(taskSeqManager):
             if verificarOrdenCreada["status"] == True:  # si tengo orden creada
                 # guardo los datos de la orden
                 orden = verificarOrdenCreada["data"]
-                #self.log.info("tengo orden creada")
+                self.log.info("tengo orden creada")
                 if await self.verificar_size_rueda(self.botData["byma48h"], sideText) == True:
                     return
                 # verifico si puedo operar, aqui va consultar la data del book con la data de la db y ver si puedo operar
@@ -581,7 +615,7 @@ class botCiCi(taskSeqManager):
                 verificarOperarCI2 = await self.clientR.verificar_ordenes_futuro(self.botData["byma48h"], sideBook, self._tickers[self.botData["byma48h"]][sideBook])
 
                 if verificarOperar["puedoOperar"] == True:
-                    #self.log.info(f"puedo crear orden en 48h: {sideBook}")
+                    self.log.info(f"puedo crear orden en 48h: {sideBook}")
                     # indice del book q puedo tomar sus valores
                     indice = verificarOperar["indiceBookUsar"]
                     # precio del book q puedo tomar sus valores
@@ -599,23 +633,23 @@ class botCiCi(taskSeqManager):
                                             ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_48h(
                         market_price_CI, size_CI, sideBook, orden)  # calculo el precio y size de la orden
-                    #self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
+                    self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if limit_price_CI <= 0:
-                        #self.log.info(                            "no hago nada xq el precio es menor o igual a 0")
+                        self.log.info(                            "no hago nada xq el precio es menor o igual a 0")
                         return
                     # validar mejor con el size disponible de la rueda
                     if volume_limit_CI <= 0:
-                        #self.log.info(                            "no hago nada xq el size es menor o igual a 0")
+                        self.log.info(                            "no hago nada xq el size es menor o igual a 0")
                         return
                     # verifico si el precio o size son diferentes del q tengo actualmente
                     if orden['price'] != limit_price_CI or orden['leavesQty'] != volume_limit_CI:
-                        #self.log.info(                            "si el precio o size son diferentes del q tengo actualmente entonces modifico la orden")
+                        self.log.info(                            "si el precio o size son diferentes del q tengo actualmente entonces modifico la orden")
                         # await self.clientR.esperar_orden_operada()
                         if sideBook == "BI":
-                            #self.log.info(                                "aqui voy a verificar el saldo disponible en pesos  ")
+                            self.log.info(                                "aqui voy a verificar el saldo disponible en pesos  ")
                             disponible = await self.clientR.get_saldo_disponible(self.botData["byma48h"])
                             if disponible < (limit_price_CI*volume_limit_CI) * self.botData["factor"]:
-                                #self.log.info(                                    f"no hay saldo disponible para operar ")
+                                self.log.info(                                    f"no hay saldo disponible para operar ")
                                 return
                         if self.botData["soloEscucharMercado"] == True:
                             return
@@ -629,14 +663,14 @@ class botCiCi(taskSeqManager):
                             volume_limit_CI = orden['orderQty']
                             modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], sideOrder, 2, self.botData["byma48h"],
                                                                                      volume_limit_CI, limit_price_CI)  # modifico la orden
-                        #self.log.info(f"orden modificada {modificarOrden}")
+                        self.log.info(f"orden modificada {modificarOrden}")
                     else:
                         self.log.error(                            "no hago nada xq el precio y size son iguales al q tengo actualmente")
            
 
             else:
-                #self.log.info("no tengo orden creada")
-                #self.log.info(f"posiciones: {self.botData['posiciones']}")
+                self.log.info("no tengo orden creada")
+                self.log.info(f"posiciones: {self.botData['posiciones']}")
                 posicionBymaCI = self.botData["posiciones"][self.botData["bymaCI"]
                                                             ]["BI"] - self.botData["posiciones"][self.botData["bymaCI"]]["OF"]
                 if sideBook == "BI":
@@ -644,14 +678,14 @@ class botCiCi(taskSeqManager):
                     # verificar la cantidad de las posiciones en el book bymaCI
                     if posicionBymaCI == 0:
                         # x ende no puedo crear una orden de compra 48 xq no tengo nada en ci posicion
-                        #self.log.info("no hay nada en CI BI")
+                        self.log.info("no hay nada en CI BI")
                         # por ende no me pueden tomar mi orden xq si lo hacen no puedo vender ci
                         return
                 if sideBook == "OF":
                     posicion48h = (self.botData["posiciones"][self.botData["byma48h"]]["BI"] -
                                    self.botData["posiciones"][self.botData["byma48h"]]["OF"]) + posicionBymaCI
                     if posicion48h <= 0:
-                        #self.log.info("no hay nada en 48h BI")
+                        self.log.info("no hay nada en 48h BI")
                         return
                 # verifico si puedo operar
                 # me va arrojar un diccionario con status y indice, si status es True entonces puedo operar y el indice es el indice del book q puedo tomar sus valores
@@ -660,7 +694,7 @@ class botCiCi(taskSeqManager):
                 verificarOperarCI2 = await self.clientR.verificar_ordenes_futuro(self.botData["byma48h"], sideBook, self._tickers[self.botData["byma48h"]][sideBook])
 
                 if verificarOperar["puedoOperar"] == True:  # si puedo operar
-                    #self.log.info(f"puedo crear orden en 48h: {sideBook} ")
+                    self.log.info(f"puedo crear orden en 48h: {sideBook} ")
                     # indice del book q puedo tomar sus valores
                     indice = verificarOperar["indiceBookUsar"]
                     # precio del book q puedo tomar sus valores
@@ -677,18 +711,18 @@ class botCiCi(taskSeqManager):
                                             ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_48h(
                         market_price_CI, size_CI, sideBook)  # calculo el precio y size de la orden
-                    #self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
+                    self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if volume_limit_CI <= 0 or limit_price_CI <= 0:
-                        #self.log.info(                            "no hago nada xq el size es menor o igual a 0")
+                        self.log.info(                            "no hago nada xq el size es menor o igual a 0")
                         return
                     # creo la orden: symbol, side:1=buy:2=sell, volume, price, order_type:2=limit, id_bot
                     # await self.clientR.esperar_orden_operada()
                     if posicionBymaCI >= volume_limit_CI:
                         if sideBook == "BI":
-                            #self.log.info(                                "aqui voy a verificar el saldo disponible en pesos  ")
+                            self.log.info(                                "aqui voy a verificar el saldo disponible en pesos  ")
                             disponible = await self.clientR.get_saldo_disponible(self.botData["byma48h"])
                             if disponible < (limit_price_CI*volume_limit_CI) * self.botData["factor"]:
-                                #self.log.info(                                    f"no hay saldo disponible para operar ")
+                                self.log.info(                                    f"no hay saldo disponible para operar ")
                                 return
                         if self.botData["soloEscucharMercado"] == True:
                             return
@@ -697,7 +731,7 @@ class botCiCi(taskSeqManager):
                             return
                         # creo la orden
                         ordenNueva = await self.clientR.nueva_orden(self.botData["byma48h"], sideOrder, volume_limit_CI, limit_price_CI, 2)
-                        #self.log.info(f"orden nueva {ordenNueva}")
+                        self.log.info(f"orden nueva {ordenNueva}")
                     else:
                         self.log.error(
                             f"no puedo crear la orden xq no tengo suficiente size en ci")
@@ -709,7 +743,7 @@ class botCiCi(taskSeqManager):
             self.log.error(f"error verificando 48: {e}")
 
     async def verificar_colgadas_rueda(self):
-        #self.log.info(f"entrando a verificar colgadas rueda")
+        self.log.info(f"entrando a verificar colgadas rueda")
         ruedaA = self.botData["ruedaA"]["sizeDisponible"]  # C CI / V 48
         ruedaB = self.botData["ruedaB"]["sizeDisponible"]  # V CI / C 48
         # self.botData["byma48h"]
@@ -719,18 +753,18 @@ class botCiCi(taskSeqManager):
                 self.log.warning(f"paused esta activo")
                 return
             cancelHaberla = await self.clientR.cancelar_orden_haberla(self.botData["bymaCI"], 1)
-            #self.log.info(f"cancelHaberla: {cancelHaberla}")
+            self.log.info(f"cancelHaberla: {cancelHaberla}")
             cancelHaberla = await self.clientR.cancelar_orden_haberla(self.botData["byma48h"], 2)
-            #self.log.info(f"cancelHaberla: {cancelHaberla}")
+            self.log.info(f"cancelHaberla: {cancelHaberla}")
 
         if ruedaB == 0:
             if not self.paused.is_set():
                 self.log.warning(f"paused esta activo")
                 return
             cancelHaberla = await self.clientR.cancelar_orden_haberla(self.botData["bymaCI"], 2)
-            #self.log.info(f"cancelHaberla: {cancelHaberla}")
+            self.log.info(f"cancelHaberla: {cancelHaberla}")
             cancelHaberla = await self.clientR.cancelar_orden_haberla(self.botData["byma48h"], 1)
-            #self.log.info(f"cancelHaberla: {cancelHaberla}")
+            self.log.info(f"cancelHaberla: {cancelHaberla}")
 
     async def verificar_puntas(self):
         try:
@@ -770,10 +804,10 @@ class botCiCi(taskSeqManager):
             self.log.error(f"error verificando puntas")
 
     async def verificar_ci(self, side):
-        #self.log.info(f"book: {self._tickers}")
+        self.log.info(f"book: {self._tickers}")
         try:
-            #self.log.info(f"entrando a verificar ci: {side}")
-            #self.log.info(f"ver botData: {self.botData}")
+            self.log.info(f"entrando a verificar ci: {side}")
+            self.log.info(f"ver botData: {self.botData}")
             sideText = "Buy"
             sideBook = "BI"
             sideOrder = 1
@@ -795,7 +829,7 @@ class botCiCi(taskSeqManager):
             if verificarOrdenCreada["status"] == True:  # si tengo orden creada
                 # guardo los datos de la orden
                 orden = verificarOrdenCreada["data"]
-                #self.log.info("tengo orden creada")
+                self.log.info("tengo orden creada")
                 # verificar si el size de la rueda no es 0 , xq si es 0 entonces debo cancelar orden haberla
                 if await self.verificar_size_rueda(self.botData["bymaCI"], sideText) == True:
                     return
@@ -807,7 +841,7 @@ class botCiCi(taskSeqManager):
 
                 # verifico ci por la formula que calcula el limit de ci
                 if verificarOperar["puedoOperar"] == True:
-                    #self.log.info(f"puedo crear orden en CI: {sideBook}")
+                    self.log.info(f"puedo crear orden en CI: {sideBook}")
                     # indice del book q puedo tomar sus valores
                     indice = verificarOperar["indiceBookUsar"]
                     # precio del book q puedo tomar sus valores
@@ -824,30 +858,30 @@ class botCiCi(taskSeqManager):
                                              ][sideBook][indice]["size"]
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_CI(
                         market_price_48h, size_48h, sideBook, orden)  # calculo el precio y size de la orden
-                    #self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
+                    self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     if limit_price_CI <= 0:
-                        #self.log.info(                            "no hago nada xq el precio es menor o igual a 0")
+                        self.log.info(                            "no hago nada xq el precio es menor o igual a 0")
                         return
                     if volume_limit_CI <= 0:
-                        #self.log.info(                            "no hago nada xq el size es menor o igual a 0")
+                        self.log.info(                            "no hago nada xq el size es menor o igual a 0")
                         return
                     if sideBook == "BI":
                         if posicion48h < volume_limit_CI and posicion48h > 0:
                             volume_limit_CI = posicion48h
-                            #self.log.info(                                "no tengo suficiente size en ci2h pero tengo algo entonces modifico el size")
+                            self.log.info(                                "no tengo suficiente size en ci2h pero tengo algo entonces modifico el size")
                     else:
                         if posicionBymaCI < volume_limit_CI and posicionBymaCI > 0:
                             volume_limit_CI = posicionBymaCI
-                            #self.log.info(                                "no tengo suficiente size en ci pero tengo algo entonces modifico el size")
+                            self.log.info(                                "no tengo suficiente size en ci pero tengo algo entonces modifico el size")
                     # verifico si el precio o size son diferentes del q tengo actualmente
                     if orden['price'] != limit_price_CI or orden['leavesQty'] != volume_limit_CI:
-                        #self.log.info(                            "si el precio o size son diferentes del q tengo actualmente entonces modifico la orden")
+                        self.log.info(                            "si el precio o size son diferentes del q tengo actualmente entonces modifico la orden")
                         # await self.clientR.esperar_orden_operada()
                         if sideBook == "BI":
-                            #self.log.info(                                "aqui voy a verificar el saldo disponible en pesos  ")
+                            self.log.info(                                "aqui voy a verificar el saldo disponible en pesos  ")
                             disponible = await self.clientR.get_saldo_disponible(self.botData["bymaCI"])
                             if disponible < (limit_price_CI*volume_limit_CI) * self.botData["factor"]:
-                                #self.log.info(                                    f"no hay saldo disponible para operar ")
+                                self.log.info(                                    f"no hay saldo disponible para operar ")
                                 return
                         if self.botData["soloEscucharMercado"] == True:
                             return
@@ -861,35 +895,35 @@ class botCiCi(taskSeqManager):
                             volume_limit_CI = orden['orderQty']
                             modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], sideOrder, 2, self.botData["bymaCI"],
                                                                                      volume_limit_CI, limit_price_CI)  # modifico la orden
-                        #self.log.info(f"orden modificada {modificarOrden}")
+                        self.log.info(f"orden modificada {modificarOrden}")
                     else:
                         self.log.error(
                             "no hago nada xq el precio y size son iguales al q tengo actualmente")
                 else:
                     if verificarOperar["primeraOrden"] == True:
-                        #self.log.info(                            "cancelar orden haberla en 48 todo depende :D  ")
-                        #self.log.info(f"estoy en 48: {side}")
+                        self.log.info(                            "cancelar orden haberla en 48 todo depende :D  ")
+                        self.log.info(f"estoy en 48: {side}")
                         if not self.paused.is_set():
                             self.log.warning(f"paused esta activo")
                             return
                         
                         if orden["price"]==self._tickers[self.botData["bymaCI"]][sideBook][0]["price"]:
-                            #self.log.info(f"mando a borrar 48 xq estoy de primero en el book")
+                            self.log.info(f"mando a borrar 48 xq estoy de primero en el book")
                             cancelarHaberla = await self.clientR.cancelar_orden_haberla(self.botData["byma48h"], sideOrder)
-                            #self.log.info(f"cancelarHaberla: {cancelarHaberla}")
+                            self.log.info(f"cancelarHaberla: {cancelarHaberla}")
 
             else:
-                #self.log.info("no tengo orden creada")
+                self.log.info("no tengo orden creada")
                 if sideBook == "BI":  # necesito tener saldo en CI2 para poder crear una orden de compra en CI
                 # verificar la cantidad de las posiciones en el book bymaCI
                     if posicion48h <= 0:
                         # x ende no puedo crear una orden de venta en CI
-                        #self.log.info("no hay nada en CI2 BI ")
+                        self.log.info("no hay nada en CI2 BI ")
                         return
                 else:  # soy of #necesito tener saldo en Ci para poder crear una orden de venta en CI
                     # verificar la cantidad de las posiciones en el book bymaCI
                     if posicionBymaCI <= 0:
-                        #self.log.info("no hay nada en CI BI ")
+                        self.log.info("no hay nada en CI BI ")
                         return
                 # verifico si puedo operar
                 # me va arrojar un diccionario con status y indice, si status es True entonces puedo operar y el indice es el indice del book q puedo tomar sus valores
@@ -898,7 +932,7 @@ class botCiCi(taskSeqManager):
                 verificarOperarCI = await self.clientR.verificar_ordenes_futuro(self.botData["bymaCI"], sideBook, self._tickers[self.botData["bymaCI"]][sideBook])
 
                 if verificarOperar["puedoOperar"] == True:
-                    #self.log.info(f"puedo crear orden en CI: {sideBook}")
+                    self.log.info(f"puedo crear orden en CI: {sideBook}")
                     # indice del book q puedo tomar sus valores
                     indice = verificarOperar["indiceBookUsar"]
                     # precio del book q puedo tomar sus valores
@@ -917,26 +951,26 @@ class botCiCi(taskSeqManager):
                     limit_price_CI, volume_limit_CI = self.calculate_limit_asset_price_CI(
                         market_price_48h, size_48h, sideBook)  # calculo el precio y size de la orden
                     # muestro el precio y size de la orden
-                    #self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
+                    self.log.info(                        f"Limit CI: {limit_price_CI}, Volume: {volume_limit_CI} ")
                     # creo la orden: symbol, side:1=buy:2=sell, volume, price, order_type:2=limit, id_bot
                     if volume_limit_CI <= 0 or limit_price_CI <= 0:
-                        #self.log.info(                            "no hago nada xq el size es menor o igual a 0")
+                        self.log.info(                            "no hago nada xq el size es menor o igual a 0")
                         return
                     # await self.clientR.esperar_orden_operada()
                     # ahora aqui debo validar q el size q tengo en las posiciones sea mayor o igual al q voy a realizar
                     if sideBook == "BI":
                         if posicion48h < volume_limit_CI and posicion48h > 0:
                             volume_limit_CI = posicion48h
-                            #self.log.info(                                "no tengo suficiente size en ci2h pero tengo algo entonces modifico el size")
-                            #self.log.info(                            "aqui voy a verificar el saldo disponible en pesos  ")
+                            self.log.info(                                "no tengo suficiente size en ci2h pero tengo algo entonces modifico el size")
+                            self.log.info(                            "aqui voy a verificar el saldo disponible en pesos  ")
                             disponible = await self.clientR.get_saldo_disponible(self.botData["bymaCI"])
                             if disponible < (limit_price_CI*volume_limit_CI) * self.botData["factor"]:
-                                #self.log.info(                                    f"no hay saldo disponible para operar ")
+                                self.log.info(                                    f"no hay saldo disponible para operar ")
                                 return
                     else:
                         if posicionBymaCI < volume_limit_CI and posicionBymaCI > 0:
                             volume_limit_CI = posicionBymaCI
-                            #self.log.info(                                "no tengo suficiente size en ci pero tengo algo entonces modifico el size")
+                            self.log.info(                                "no tengo suficiente size en ci pero tengo algo entonces modifico el size")
                     if not self.paused.is_set():
                         self.log.warning(f"paused esta activo")
                         return
@@ -947,7 +981,7 @@ class botCiCi(taskSeqManager):
 
                 #   ordenNueva = await self.clientR.nueva_orden(self.botData["bymaCI"], sideOrder, volume_limit_CI,
                     #                                      limit_price_CI, 2)#creo la orden
-                    #self.log.info(f"orden nueva {ordenNueva}")
+                    self.log.info(f"orden nueva {ordenNueva}")
                 else:
                     self.log.error(
                         "no hago nada xq no tengo nada en 48h  y no tengo orden creada en CI")
@@ -974,7 +1008,7 @@ class botCiCi(taskSeqManager):
         return next_day
 
     def update_limits(self, symbol, price, sideBook):
-        #self.log.info(f"entrando a updatelimits")
+        self.log.info(f"entrando a updatelimits")
         try:
             if symbol == "48":
                 if sideBook == "BI":
@@ -992,7 +1026,7 @@ class botCiCi(taskSeqManager):
             self.log.error(f"error update limits: {e}")
 
     def redondeo_tick(self, price, tick, ):
-        #self.log.info(f"redondeo_tick: {price}, {tick}")
+        self.log.info(f"redondeo_tick: {price}, {tick}")
         rounded_num = round(price / tick) * tick
         return rounded_num
 
@@ -1005,25 +1039,25 @@ class botCiCi(taskSeqManager):
         return annualized_arbitrage_rate_48h
 
     async def verificar_orden_operada(self, details, typeOrder, lastOrderID):
-        #self.log.info(f"entrando a verificar_orden_operada. {details}")
+        self.log.info(f"entrando a verificar_orden_operada. {details}")
         response = False
         try:
-            #self.log.info(f"contador operadas: {self.botData['ordenOperada']}")
+            self.log.info(f"contador operadas: {self.botData['ordenOperada']}")
             asyncio.create_task(self.actualizar_posiciones(details))
-            #self.log.info(                f"verificando orden operada del id_bot: {self.clientR.id_bot}")
+            self.log.info(                f"verificando orden operada del id_bot: {self.clientR.id_bot}")
             orderId = details["orderId"]
             clOrdId = details["clOrdId"]
             activeOrder = False
             if details["leavesQty"] > 0:
                 activeOrder = True
             if typeOrder == "N":
-                #self.log.info("es orden normal de la estrategia ")
-                #self.log.info("ahora operar la contraria ")
+                self.log.info("es orden normal de la estrategia ")
+                self.log.info("ahora operar la contraria ")
                 order = await self.operar_orden(details, lastOrderID)
-                #self.log.info(                    f"llego respuesta de orden contraria operada: {order}")
+                self.log.info(                    f"llego respuesta de orden contraria operada: {order}")
                 if order["llegoRespuesta"] == True:
                     if order["data"]["reject"] == 'false':
-                        #self.log.info(                            f"es filled o colgada ahora si descuento la rueda ")
+                        self.log.info(                            f"es filled o colgada ahora si descuento la rueda ")
                         await self.guardar_mitad_rueda(details, details["lastQty"], 1)
                         if order["data"]["ordStatus"] == "NEW":
                             # es colgada enviar notificacion
@@ -1034,7 +1068,7 @@ class botCiCi(taskSeqManager):
 
                 await self.clientR.save_order_details(details, activeOrder)
             elif typeOrder == "B":
-                #self.log.info("es una orden B osea contraria")
+                self.log.info("es una orden B osea contraria")
                 await self.clientR.disable_order_status(orderId, clOrdId)
                 await self.clientR.save_order_details(details, activeOrder)
             response = True
@@ -1044,7 +1078,7 @@ class botCiCi(taskSeqManager):
 
     async def actualizar_posiciones(self, details):
         try:
-            #self.log.info(f"actualizando posiciones")
+            self.log.info(f"actualizando posiciones")
             size = int(details["lastQty"])
             if details["side"] == "Buy":
                 self.botData["posiciones"][details["symbol"]
@@ -1052,36 +1086,36 @@ class botCiCi(taskSeqManager):
             else:
                 self.botData["posiciones"][details["symbol"]
                                            ]["OF"] = self.botData["posiciones"][details["symbol"]]["OF"] + size
-            #self.log.info(                f"posiciones actualizadas: {self.botData['posiciones']}")
+            self.log.info(                f"posiciones actualizadas: {self.botData['posiciones']}")
         except Exception as e:
             self.log.error(f"error actualizando posiciones: {e}")
 
     async def operar_orden(self, orden, id_order):
-        #self.log.info(f"entrando a operar orden")
+        self.log.info(f"entrando a operar orden")
         response = {"llegoRespuesta": False}
         try:
             if orden["symbol"] == self.botData["bymaCI"]:
-                #self.log.info("bymaCI")
+                self.log.info("bymaCI")
                 if orden["side"] == "Buy":
-                    #self.log.info("Buy")
-                    #self.log.info("ahora operar la contraria pero en 48h OF ")
+                    self.log.info("Buy")
+                    self.log.info("ahora operar la contraria pero en 48h OF ")
                     response = await self.operar_orden_contraria(orden, self.botData["byma48h"], "BI", id_order, 2)
                 else:
                     # es sell
-                    #self.log.info("Sell")
-                    #self.log.info("ahora operar la contraria pero en 48h BI ")
+                    self.log.info("Sell")
+                    self.log.info("ahora operar la contraria pero en 48h BI ")
                     response = await self.operar_orden_contraria(orden, self.botData["byma48h"], "OF", id_order, 1)
             else:
                 # es byma48h
-                #self.log.info("byma48h")
+                self.log.info("byma48h")
                 if orden["side"] == "Buy":
-                    #self.log.info("Buy")
-                    #self.log.info("ahora operar la contraria pero en CI OF ")
+                    self.log.info("Buy")
+                    self.log.info("ahora operar la contraria pero en CI OF ")
                     response = await self.operar_orden_contraria(orden, self.botData["bymaCI"], "BI", id_order, 2)
                 else:
                     # es sell
-                    #self.log.info("Sell")
-                    #self.log.info("ahora operar la contraria pero en CI BI ")
+                    self.log.info("Sell")
+                    self.log.info("ahora operar la contraria pero en CI BI ")
                     response = await self.operar_orden_contraria(orden, self.botData["bymaCI"], "OF", id_order, 1)
         except Exception as e:
             self.log.error(f"error operando orden : {e}")
@@ -1089,12 +1123,12 @@ class botCiCi(taskSeqManager):
 
     async def operar_orden_contraria(self, orden, symbolCheck, sideCheck, id_order, sideOrder):
         response = {"llegoRespuesta": False}
-        #self.log.info(            f"operar orden contraria del id_bot: {self.clientR.id_bot}")
-        #self.log.info(f"orden {orden}")
-        #self.log.info(f"necesito el symbol: {symbolCheck}")
-        #self.log.info(            f"necesito el side: {sideCheck} para poder hacer el market del otro lado")
-        #self.log.info(f"id_order: {id_order}")
-        #self.log.info(f"sideOrder: {sideOrder}")
+        self.log.info(            f"operar orden contraria del id_bot: {self.clientR.id_bot}")
+        self.log.info(f"orden {orden}")
+        self.log.info(f"necesito el symbol: {symbolCheck}")
+        self.log.info(            f"necesito el side: {sideCheck} para poder hacer el market del otro lado")
+        self.log.info(f"id_order: {id_order}")
+        self.log.info(f"sideOrder: {sideOrder}")
 
         try:
             verifyF = await self.clientR.verificar_ordenes_futuro(symbolCheck, sideCheck, self._tickers[symbolCheck][sideCheck])
@@ -1104,7 +1138,7 @@ class botCiCi(taskSeqManager):
                 asset_price_CON = self._tickers[symbolCheck][sideCheck][1]["price"]
             size = self.get_volume_ci1_ci2(size, orden["price"], asset_price_CON)
             if self.botData["market"] == True:
-                #self.log.info(                    f"esta market mando a crear orden nueva y cancelar orden haberla en 2 hilos ")
+                self.log.info(                    f"esta market mando a crear orden nueva y cancelar orden haberla en 2 hilos ")
                 clOrdId = await self.clientR.getNextOrderBotID(self.botData["cuenta"], self.botData["id_bot"], id_order)
                 task2 = asyncio.create_task(
                     self.clientR.cancelar_orden_haberla(symbolCheck, sideOrder))
@@ -1112,14 +1146,14 @@ class botCiCi(taskSeqManager):
                     symbolCheck, sideOrder, size, 1, 1, clOrdId, 1))
                 ordenNew = await task1
                 cancelarOrdenhaberla = await task2
-                #self.log.info(                    f"llegaron respuestas, ordennew: {ordenNew}, cancelarOrdenhaberla: {cancelarOrdenhaberla}")
+                self.log.info(                    f"llegaron respuestas, ordennew: {ordenNew}, cancelarOrdenhaberla: {cancelarOrdenhaberla}")
                 response = ordenNew
             else:
                 if verifyF["puedoOperar"] == True:
-                    #self.log.info(                        "si hay ordenes en el simbolo y en el side que necesito")
+                    self.log.info(                        "si hay ordenes en el simbolo y en el side que necesito")
                     indiceBook = verifyF["indiceBookUsar"]
                     priceOrder = self._tickers[symbolCheck][sideCheck][indiceBook]["price"]
-                    #self.log.info(f"priceFuturo: {priceOrder}")
+                    self.log.info(f"priceFuturo: {priceOrder}")
                     clOrdId = await self.clientR.getNextOrderBotID(self.botData["cuenta"], self.botData["id_bot"], id_order)
                 #   self.botData["ordenesBot"].append({"idOperada":id_order, "clOrdId": clOrdId, "size": size })
                     task2 = asyncio.create_task(
@@ -1128,31 +1162,31 @@ class botCiCi(taskSeqManager):
                         symbolCheck, sideOrder, size, priceOrder, 2, clOrdId, 1))
                     ordenNew = await task1
                     cancelarOrdenhaberla = await task2
-                    #self.log.info(                        f"llegaron respuestas, ordennew: {ordenNew}, cancelarOrdenhaberla: {cancelarOrdenhaberla}")
+                    self.log.info(                        f"llegaron respuestas, ordennew: {ordenNew}, cancelarOrdenhaberla: {cancelarOrdenhaberla}")
 
                     response = ordenNew
                 else:
-                    #self.log.info(                        f"no puedo operar xq no hay ordenes en el simbolo y en el side que necesito")
+                    self.log.info(                        f"no puedo operar xq no hay ordenes en el simbolo y en el side que necesito")
                     sideForPrice = "BI"
                     if sideCheck == "BI":
                         sideForPrice = "OF"
                     limit_price, volume_limit = self.calculate_limit_asset_price_48h(
                         orden["price"], orden["lastQty"], sideForPrice)
-                    #self.log.info(f"priceFuturo: {limit_price}")
+                    self.log.info(f"priceFuturo: {limit_price}")
                     clOrdId = await self.clientR.getNextOrderBotID(self.botData["cuenta"], self.botData["id_bot"], id_order)
                 #  self.botData["ordenesBot"].append({"idOperada":id_order, "clOrdId": clOrdId, "size": size })
                     task2 = asyncio.create_task(self.clientR.cancelar_orden_haberla(symbolCheck, sideOrder))
                     task1 = asyncio.create_task(self.clientR.nueva_orden(symbolCheck, sideOrder, size, limit_price, 2, clOrdId, 1))
                     ordenNew = await task1
                     cancelarOrdenhaberla = await task2
-                    #self.log.info(f"llegaron respuestas, ordennew: {ordenNew}, cancelarOrdenhaberla: {cancelarOrdenhaberla}")
+                    self.log.info(f"llegaron respuestas, ordennew: {ordenNew}, cancelarOrdenhaberla: {cancelarOrdenhaberla}")
                     response = ordenNew
         except Exception as e:
             self.log.error(f"error operando orden contraria: {e}")
         return response
 
     async def guardar_mitad_rueda(self, details, lastQty, descontar=0, sizePendiente=0):
-        #self.log.info("guardar_mitad_rueda")
+        self.log.info("guardar_mitad_rueda")
         try:
             # debo primero averiguar a q lado de la rueda pertenece la orden
             # para eso voy a comparar el simbolo de la orden con el simbolo de la rueda
@@ -1165,18 +1199,18 @@ class botCiCi(taskSeqManager):
             elif details["symbol"] == self.botData["bymaCI"] and details["side"] == "Sell":
                 ruedaType = "ruedaB"
                 ruedaContraria = "ruedaA"
-            #self.log.info(f"ruedaType: {ruedaType}")
+            self.log.info(f"ruedaType: {ruedaType}")
             # guardar orden
-            #self.log.info("guardar orden en el lado de la rueda")
+            self.log.info("guardar orden en el lado de la rueda")
         #  self.botData[ruedaType]["ordenes"].append(details)
-            #self.log.info(                f"ordenes de la rueda: {self.botData[ruedaType]['ordenes']}")
+            self.log.info(                f"ordenes de la rueda: {self.botData[ruedaType]['ordenes']}")
             # descontar sizedisponible
             if descontar == 1:
-                #self.log.info("descontar size disponible")
+                self.log.info("descontar size disponible")
                 size = lastQty
                 self.botData[ruedaType]["sizeDisponible"] = self.botData[ruedaType]["sizeDisponible"] - size
-                #self.log.info(                    f"size disponible: {self.botData[ruedaType]['sizeDisponible']}")
-                #self.log.info("sumar size disponible en rueda contraria")
+                self.log.info(                    f"size disponible: {self.botData[ruedaType]['sizeDisponible']}")
+                self.log.info("sumar size disponible en rueda contraria")
                 self.botData[ruedaContraria]["sizeDisponible"] = self.botData[ruedaContraria]["sizeDisponible"] + size
         except Exception as e:
             self.log.error(f"error guardando mitad rueda:{e}")
