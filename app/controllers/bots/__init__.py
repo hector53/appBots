@@ -40,13 +40,13 @@ class BotsController:
             getBotEjecutando = DbUtils.get_bot_activo(id_bot)
             if getBotEjecutando == False:
                 abort(make_response(jsonify(message="no existe ese bot"), 404))
-            log.info(f"si existe el bot en la db asi q continuo")
+            #log.info(f"si existe el bot en la db asi q continuo")
             id_bot_ejecutando = getBotEjecutando["_id"]
             type_bot = getBotEjecutando["type_bot"]
             symbols = getBotEjecutando["symbols"]
             opciones = getBotEjecutando["opciones"]
             if getBotEjecutando["status"] == 0:
-                log.info(f"el bot esta desactivado asi q lo inicio")
+                #log.info(f"el bot esta desactivado asi q lo inicio")
                 opciones = getBotEjecutando["opciones"]
                 if not "market" in opciones:
                     opciones["market"] = False
@@ -62,7 +62,7 @@ class BotsController:
                         opciones["periodoBB"] = 180
                     response = await UtilsController.iniciar_bot_ci_48_bb(getFixTask.botManager, id_fix, id_bot_ejecutando, cuenta, symbols, opciones, soloEscucharMercado, getFixTask)
             else:
-                log.info(f"el bot esta en otro estado asi q lo actualizo")
+                #log.info(f"el bot esta en otro estado asi q lo actualizo")
                 # activar bot
                 getFixTask.botManager.main_tasks[id_bot_ejecutando].botData["soloEscucharMercado"] = soloEscucharMercado
                 task = {"type": 0}
@@ -89,7 +89,7 @@ class BotsController:
         soloEscucharMercado = req_obj["soloEscucharMercado"]
         response = {"status": False}
         if id_fix in sesionesFix:
-            log.info(f"si existe a session: {id_fix}")
+            #log.info(f"si existe a session: {id_fix}")
             print("si existe a session")
 
             getBotEjecutando = DbUtils.get_bot_activo(id_bot)
@@ -135,7 +135,7 @@ class BotsController:
 
     async def edit_bot():
         req_obj = request.get_json()
-        log.info(f"req_obj: {req_obj}")
+        #log.info(f"req_obj: {req_obj}")
         id_bot = req_obj["id_bot"]
         fix = req_obj["fix"]
         opciones = req_obj["opciones"]
@@ -173,7 +173,7 @@ class BotsController:
     async def cancel_order_manual():
         from app import fixM
         req_obj = request.get_json()
-        log.info(f"cancel_order_manual BOT: {req_obj}")
+        #log.info(f"cancel_order_manual BOT: {req_obj}")
         x = req_obj["order"]
         fix=req_obj["fix"]
          
@@ -182,7 +182,7 @@ class BotsController:
             #si esta activa la sesion y el bot tambien 
             task = await UtilsController.cancelar_orden_async(fix["user"], id_bot, x["orderId"], x["clOrdId"], x["side"], 
                                                               x["leavesQty"], x["symbol"], x["cuenta"])
-            log.info(f"task: {task}")
+            #log.info(f"task: {task}")
             return jsonify({"status": True})
         else:
             #solo actualizo 
@@ -197,7 +197,7 @@ class BotsController:
 
     async def detener_bot():
         req_obj=request.get_json()
-        log.info(f"DETENER BOT: {req_obj}")
+        #log.info(f"DETENER BOT: {req_obj}")
         id_bot=req_obj["id"]
         fix=req_obj["fix"]
         response={"status": True}
@@ -207,7 +207,7 @@ class BotsController:
             # ahora cancelar las ordenes abiertas
             response=await UtilsController.detener_bot_by_id(fix, id_bot)
         else:
-            log.info("fix no esta activa, entonces actualizo solo en db ")
+            #log.info("fix no esta activa, entonces actualizo solo en db ")
             await DbUtils.update_status_bot_ejecuntadose(id_bot, 0)
             response={"status": True}
 
@@ -232,7 +232,7 @@ class BotsController:
             bot=mongo.db.bots.find_one({'_id': ObjectId(id)})
             if bot:
                 bot['_id']=str(bot['_id'])
-                #  log.info("ahora a crear el bot ejecutando ")
+                #  #log.info("ahora a crear el bot ejecutando ")
                 botE=DbUtils.get_bot_ejecutandose(
                     fix["user"], id, fix["account"], bot["symbols"], bot["opciones"], 0, bot["type_bot"])
                 if botE == None:
@@ -242,7 +242,7 @@ class BotsController:
                     jsonify(message="no se encontro el id del bot"), 401))
             botE['_id']=str(botE['_id'])
             botE_id=botE['_id']
-            #log.info(f"botE_id: {botE_id}")
+            ##log.info(f"botE_id: {botE_id}")
             botE_cuenta=botE['cuenta']
             statusBot=botE["status"]
             if statusBot == 0:
@@ -251,7 +251,7 @@ class BotsController:
                 # aqui si esta activo completamente buscar todos los demas datos
                 # necesito el tipo de bot para saber q datos traer
                 if botE["type_bot"] == 0:
-                  #  log.info("es triangulo")
+                  #  #log.info("es triangulo")
                     # Obtener la fecha actual
                     fecha_actual=datetime.today()
 
@@ -284,10 +284,10 @@ class BotsController:
                     botE["arrayBook"]=arrayBook
                     botE["posiciones"]=posiciones
                     botE["puertows"] = puertows
-                #  log.info(f"esto es lo q voy a retornar botE: {botE}")
+                #  #log.info(f"esto es lo q voy a retornar botE: {botE}")
                     return jsonify(botE)
                 elif botE["type_bot"] == 1 or botE["type_bot"] == 2 or botE["type_bot"] == 3:
-                  #  log.info("es ci/48")
+                  #  #log.info("es ci/48")
                     # Obtener la fecha actual
                     fecha_actual=datetime.today()
 
@@ -325,7 +325,7 @@ class BotsController:
                     botE["ruedaA"]=ruedaA
                     botE["ruedaB"]=ruedaB
                     botE["puertows"] = puertows
-                #  log.info(f"esto es lo q voy a retornar botE: {botE}")
+                #  #log.info(f"esto es lo q voy a retornar botE: {botE}")
                     return jsonify(botE)
         except Exception as e:
             log.error(f"error en get botchar: {e}")
