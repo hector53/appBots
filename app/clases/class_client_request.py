@@ -1164,7 +1164,7 @@ class client_request():
              else sigo recorriendo , si hay mas ordenes coloco el indice a usar y rompo ciclo 
              entonces ahi tengo mis dos opciones 
              puedoOperar sera true cuando no este de primero y tenga ordenes del book q pueda comer 
-
+    funcional actual
         """
         response = {
             "indiceBookUsar": None,
