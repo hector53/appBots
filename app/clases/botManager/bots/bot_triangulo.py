@@ -907,7 +907,8 @@ class botTriangulo(taskSeqManager):
         response = False
         try:
             self.log.info(f"contador operadas: {self.botData['ordenOperada']}")
-            await self.actualizar_posiciones(details)
+          #  await self.actualizar_posiciones(details)
+            asyncio.create_task(self.actualizar_posiciones(details))
             self.log.info(
                 f"verificando orden operada del id_bot: {self.clientR.id_bot}")
             orderId = details["orderId"]
@@ -918,8 +919,10 @@ class botTriangulo(taskSeqManager):
             if typeOrder == "N":
                 self.log.info("es orden normal de la estrategia ")
                 self.log.info("ahora operar la contraria ")
-                await self.clientR.disable_order_status(orderId, clOrdId)
-                await self.clientR.save_order_details(details, activeOrder)
+              #  await self.clientR.disable_order_status(orderId, clOrdId)
+              #  await self.clientR.save_order_details(details, activeOrder)
+                asyncio.create_task(self.clientR.disable_order_status(orderId, clOrdId))
+                asyncio.create_task(self.clientR.save_order_details(details, activeOrder))
                 order = await self.operar_orden(details, lastOrderID)
                 self.log.info(
                     f"llego respuesta de ordenes contrarias operadas: {order}")
@@ -938,8 +941,10 @@ class botTriangulo(taskSeqManager):
 
             elif typeOrder == "B":
                 self.log.info("es una orden B osea contraria")
-                await self.clientR.disable_order_status(orderId, clOrdId)
-                await self.clientR.save_order_details(details, activeOrder)
+             #   await self.clientR.disable_order_status(orderId, clOrdId)
+              #  await self.clientR.save_order_details(details, activeOrder)
+                asyncio.create_task(self.clientR.disable_order_status(orderId, clOrdId))
+                asyncio.create_task(self.clientR.save_order_details(details, activeOrder))
             response = True
         except Exception as e:
             self.log.error(f"error verificando orden operada: {e}")

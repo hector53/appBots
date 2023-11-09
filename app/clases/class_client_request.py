@@ -698,7 +698,7 @@ class client_request():
                 else:
                     #no es filled ni tampoco reject, entonces es normal osea se cumplio bien
                     self.log.info(f"no es filled ni tampoco reject, entonces es normal osea se cumplio bien, entonces guardo")
-                    await self.save_order_details(order["data"], True)
+                    asyncio.create_task(self.save_order_details(order["data"], True))
             else: 
                 test="llego respuesta de tiempo limit excedido"
                 self.log.info(f"llego respuesta de tiempo limite excedido")
