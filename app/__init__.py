@@ -7,7 +7,7 @@ from bson import ObjectId
 from app.clases.fixManager import fixManager
 import logging
 import time
-
+import redis
 logging.basicConfig(filename=f'reportsBots.log', level=logging.INFO,
                     format='%(asctime)s %(name)s  %(levelname)s  %(message)s  %(lineno)d ')
 log = logging.getLogger(__name__)
@@ -20,5 +20,6 @@ mongo = PyMongo(app)
 sesionesFix = {}
 fixM = fixManager()
 urlAppFix = "http://127.0.0.1:5000"
+redis_cliente = redis.StrictRedis(host='localhost', port=6379, db=0)
 from app.requests import *
 

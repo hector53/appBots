@@ -265,12 +265,13 @@ class BotsController:
                     ordenesToda=mongo.db.ordenes.find({
                         "id_bot": botE_id,
                         "cuenta": botE_cuenta,
-                        "transactTime": {"$regex": f"^{fecha_actual_mas_4h_str}"}
-                    }, {"_id": 0})
+                        "transactTime": {"$regex": f"^{fecha_actual_mas_4h_str}"},
+                    }, {"_id": 0}).sort("transactTime", -1)
                     futuro1 = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["futuro1"]
                     futuro2 = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["futuro2"]
                     paseFuturos = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["paseFuturos"]
                     arrayBook=OrderedDict()
+                    log.info(f"tickers en bot : {fixM.main_tasks[fix['user']].botManager.main_tasks[botE_id]._tickers}")
                     arrayBook[futuro1] = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id]._tickers[futuro1]
                     arrayBook[futuro2] = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id]._tickers[futuro2]
                     arrayBook[paseFuturos] = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id]._tickers[paseFuturos]

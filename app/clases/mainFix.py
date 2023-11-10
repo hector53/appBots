@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 import logging
 import websocket
 from threading import Thread
@@ -58,12 +59,14 @@ class MainFix():
              #   ##self.log.info("ciclo infinito")
                 task = await self.message_queue.obtener_tarea()
                 if task is not None:
-                    await self.message_queue.marcar_completada(task)
+                    self.log.info(f"llego tarea nueva: {task}")
                     asyncio.create_task(self.process_message(task))
+                    await self.message_queue.marcar_completada(task)
                 await asyncio.sleep(0.01)
         except Exception as e:
             # Manejar la excepción adecuadamente
             self.log.error(f"Se ha producido una excepción: {e}")
+            self.log.error(f"traceback: {traceback.format_exc()}")
         finally: 
             self.log.error(f"se cerro el ciclo de cola en main task")
 
@@ -179,7 +182,7 @@ class MainFix():
         print("mensaje enviado ")
 
     async def procesar_orden_filled(self, task):
-        ##self.log.info(f"procesando task orden filled {task}")
+        self.log.info(f"procesando task orden filled {task}")
         clientOrderID = task["details"]["clOrdId"]
         if clientOrderID in self.clOrdIdEsperar:
             self.clOrdIdEsperar[clientOrderID]["llegoRespuesta"] = True
@@ -200,7 +203,7 @@ class MainFix():
                     asyncio.create_task(self.botManager.main_tasks[id_bot].pause()) 
                 self.botManager.main_tasks[id_bot].contadorOperada+=1
                 ##self.log.info(f"paused:{self.botManager.main_tasks[id_bot].paused}")
-                ##self.log.info(f"mandar a verificar orden para q opere contraria, hacerlo en nueva hilo")
+                self.log.info(f"mandar a verificar orden para q opere contraria, hacerlo en nueva hilo")
                 taskOperada = asyncio.create_task(self.botManager.main_tasks[id_bot].verificar_orden_operada(details,typeOrder, lastOrderID))
                 response = await taskOperada
                 ##self.log.info(f"luego q termino de verificar la operada y operar la contraria quito el pause")
@@ -218,7 +221,7 @@ class MainFix():
                 response = await taskOperada
         
     async def process_message(self, task):
-        ##self.log.info(f"procesando mensaje de fix .....: {task}")
+        self.log.info(f"procesando tarea.....: {task}")
         if "type" in task:
             #{'type': 0, 'symbolTicker': 'MERV - XMEV - AL30 - CI', 'marketData': {'BI': [{'price': 40.0, 'size': 10, 'position': 1}], 'OF': []}}
             if task["type"]==0:
@@ -247,16 +250,16 @@ class MainFix():
 
     async def update_tickers_bot(self, task):
         #aqui me llega el ticker y debo enviarlo a cada bot registrado 
-        ##self.log.info("entrando a update tickers bot")
+        self.log.info("entrando a update tickers bot")
         symbolTicker = task["symbolTicker"]
         marketData = task["marketData"]
         if symbolTicker in self.marketSymbolsSubs:
             #si existe aqui entonces lo envio a los bots 
             for id_bot in self.marketSymbolsSubs[symbolTicker]:
                 if id_bot in self.botManager.main_tasks:
-                    ##self.log.info(f"tickers antes: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
+                    self.log.info(f"tickers antes: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
                     self.botManager.main_tasks[id_bot]._tickers[symbolTicker] = marketData
-                    ##self.log.info(f"tickers despues: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
+                    self.log.info(f"tickers despues: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
                     ##self.log.info(f"ahora si agregamos tarea al bot para verificar puntas")
                     if self.botManager.main_tasks[id_bot].botData["botIniciado"]==True:
                         await self.botManager.main_tasks[id_bot].add_task(task)
