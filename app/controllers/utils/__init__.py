@@ -207,7 +207,7 @@ class UtilsController:
             log.error(f"error en esperar_bot_iniciado: {e}")
         return response
 
-    async def detener_bot_by_id(fix, id_bot):
+    async def detener_bot_by_id_viejo(fix, id_bot):
         from app import fixM
         log.info(f"entrando a detener bot byid: {id_bot} ")
         response = {"status": False}
@@ -231,6 +231,88 @@ class UtilsController:
 
                     if ordenes:
                         ordenesBorrar = list(ordenes)
+                        log.info(f"ordenes: {ordenesBorrar}")
+                        log.info(f"hay {len(ordenesBorrar)} ordenes")
+                        contadorOrdenesCanceladas = 0
+                        tasks = []
+                        for x in ordenesBorrar:
+                            log.info(f"borrar orden: {x}")
+                            task = asyncio.create_task(UtilsController.cancelar_orden_async(
+                                id_fix, id_bot, x["orderId"], x["clOrdId"], x["side"], x["leavesQty"], x["symbol"], cuenta))
+                            tasks.append(task)
+                        await asyncio.gather(*tasks)
+                    #ahora quitar la suscripcion a mercado
+                    #necesito los simbolos del bot 
+                    symbolsBot = getFixTask.botManager.main_tasks[id_bot].botData["symbols2"]
+                    log.info(f"symbolsBot: {symbolsBot}")
+                    symbolsToUnsus = []
+                    #ahora verificar si existe en mainFIx en la variable de la suscripcion
+                    log.info(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
+                    for symbol in symbolsBot:
+                        if symbol in getFixTask.marketSymbolsSubs:
+                            #si existe entonces remover el id del bot 
+                            getFixTask.marketSymbolsSubs[symbol].remove(id_bot)
+                            if len(getFixTask.marketSymbolsSubs[symbol])==0: 
+                                symbolsToUnsus.append(symbol)
+                    log.info(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
+
+                    if len(symbolsToUnsus)>0:
+                        #enviar a unsuscribir los simbolos 
+                        asyncio.create_task(getFixTask.botManager.main_tasks[id_bot].clientR.suscribir_mercado_off(symbolsToUnsus)) 
+                    await getFixTask.botManager.stop_task_by_id(id_bot)
+                    log.info(
+                        f"botManager Yasks: {getFixTask.botManager.tasks}")
+                await DbUtils.update_status_bot_ejecuntadose(id_bot, 0)
+                log.info(f"fixM: {fixM}")
+                response = {"status": True}
+            except Exception as e:
+                log.info(
+                    f"error en: {e}")
+                response = {"status": False}
+        else:
+            log.info(f"no existe la session")
+            response = {"status": True}
+        return response
+
+    async def get_ordenes_by_id_bot(id_bot, cuenta):
+        from app import redis_cliente as redis_client
+        detalles_ordenes = []
+        claves = [
+                f"id_bot:{id_bot}",
+                f"cuenta:{cuenta}",
+                f"active:True"
+            ]
+        claves_interseccion = redis_client.sinter(*claves)
+        for clave in claves_interseccion:
+            orden = redis_client.hgetall(clave)
+            orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+            detalles_ordenes.append(orden_decodificada)
+        return detalles_ordenes
+            
+
+    async def detener_bot_by_id(fix, id_bot):
+        from app import fixM
+        log.info(f"entrando a detener bot byid: {id_bot} ")
+        response = {"status": False}
+        id_fix = fix["user"]
+        cuenta = fix["account"]
+        log.info(f"fixM: {fixM}")
+        getFixTask = await fixM.get_fixTask_by_id_user(id_fix)
+        if getFixTask:
+            log.info(f"si existe a session: {id_fix}")
+            try:
+
+                if id_bot in getFixTask.botManager.main_tasks:
+                    log.info(f"borrar ordenes del bot")
+                    log.info(f"si existe a bot: {id_bot}")
+                    # buscar en db las ordenes de este bot y cancelarlas
+                    log.info("pausar y detener cola del bot")
+                    await getFixTask.botManager.main_tasks[id_bot].pause()
+                    await getFixTask.botManager.main_tasks[id_bot].detenerBot()
+                    ordenes = await UtilsController.get_ordenes_by_id_bot(id_bot, cuenta)
+
+                    if ordenes:
+                        ordenesBorrar = ordenes
                         log.info(f"ordenes: {ordenesBorrar}")
                         log.info(f"hay {len(ordenesBorrar)} ordenes")
                         contadorOrdenesCanceladas = 0

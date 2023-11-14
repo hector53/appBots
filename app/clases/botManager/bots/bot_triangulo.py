@@ -5,6 +5,7 @@ import time
 from threading import Thread
 from datetime import datetime
 import logging
+import traceback
 from app.clases.class_client_request import client_request
 from app.clases.botManager.taskSeqManager import taskSeqManager
 class botTriangulo(taskSeqManager):
@@ -349,7 +350,7 @@ class botTriangulo(taskSeqManager):
             #self.log.info(f"el book esta vacio")
             return False
 
-        if priceOrder["price"]==priceBook["price"]:
+        if priceOrder==priceBook:
             #self.log.info(f"estoy de primero en el book")
             return False 
         #self.log.info(f"retorno true xq puedo tomar valor de este book ")
@@ -357,8 +358,11 @@ class botTriangulo(taskSeqManager):
     
 
     async def  verificar_futuro1_bid(self):
+        if not self.paused.is_set():
+            self.log.warning(f"paused esta activo")
+            return
         try:
-            #self.log.info("verificar futuro1 bid")
+            self.log.info("verificar futuro1 bid")
             verificarOrdenCreada = await self.clientR.get_order_limit_by_symbol_side(self.botData["futuro1"], "Buy" ) 
             if verificarOrdenCreada["status"]==True:
                 #self.log.info("tengo orden creada")
@@ -382,27 +386,27 @@ class botTriangulo(taskSeqManager):
                         #self.log.info("calcular limit es mayor a 0")
                         sizeOrder = await self.get_size_order(self.botData["futuro1"], "BI")
                         limitBidFuturo1 = calcularLimit
-                        #self.log.info(f"precio mio {round(orden['price'],1) }")
-                        #self.log.info(f"limitBidFuturo1 {round(limitBidFuturo1,1)}")
-                        #self.log.info(f"size mio: {orden['leavesQty']}")
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitBidFuturo1 {round(limitBidFuturo1,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
                         if orden['leavesQty']==0:
-                            #self.log.info("leavesQty es 0")
+                            self.log.info("leavesQty es 0")
                             return False
-                        #self.log.info(f"size a poner : {sizeOrder}")
+                        self.log.info(f"size a poner : {sizeOrder}")
                         if round(orden['price'],1) != round(limitBidFuturo1,1) or orden['leavesQty'] != sizeOrder:
                         #modificar orden
-                            #self.log.info("es diferente entonces mando a actualizar")
+                            self.log.info("es diferente entonces mando a actualizar")
                             if not self.paused.is_set():
                                 self.log.warning(f"paused esta activo")
                                 return
                             #self.log.info(f"orden operada = false, enviar a modificar orden")
                             if orden['leavesQty'] != sizeOrder:
                                 modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, 
-                                                        self.botData["futuro1"], sizeOrder, limitBidFuturo1)
+                                                        self.botData["futuro1"], sizeOrder, limitBidFuturo1, orden["clave"])
                             else:
                                 sizeOrder = orden['orderQty']
                                 modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, 
-                                                        self.botData["futuro1"], sizeOrder, limitBidFuturo1)
+                                                        self.botData["futuro1"], sizeOrder, limitBidFuturo1, orden["clave"])
                             #self.log.info(f"orden modificada {modificarOrden}")
                         else:
                             self.log.info("es lo mismo asi q no actuaklizo ")
@@ -417,7 +421,7 @@ class botTriangulo(taskSeqManager):
 
                     if len(self._tickers[self.botData["futuro2"]]["BI"])==0:
                         #self.log.info(f"cancelamos orden xq en futuro2 el book esta vacio ")
-                        cancelarOrden = await self.clientR.cancelar_orden(orden["orderId"], orden["clOrdId"], 1, orden["orderQty"], self.botData["futuro2"])
+                        cancelarOrden = await self.clientR.cancelar_orden(orden["orderId"], orden["clOrdId"], 1, orden["orderQty"], self.botData["futuro2"], orden["clave"])
                         #self.log.info(f"cancelarOrden: {cancelarOrden}")
                         return
 
@@ -495,8 +499,11 @@ class botTriangulo(taskSeqManager):
         return sizeReturn
                 
     async def  verificar_futuro1_ask(self):
+        if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
         try:
-            #self.log.info("entrando a verificar_futuro1_ask")
+            self.log.info("entrando a verificar_futuro1_ask")
             verificarOrdenCreada = await self.clientR.get_order_limit_by_symbol_side(self.botData["futuro1"], "Sell" ) 
             if verificarOrdenCreada["status"]==True:
                 orden =  verificarOrdenCreada["data"]
@@ -515,26 +522,26 @@ class botTriangulo(taskSeqManager):
                     if self.botData["soloEscucharMercado"] == True:
                         return
                     if calcularLimit>0:
-                        #self.log.info("calcular limit es mayor a 0")
+                        self.log.info("calcular limit es mayor a 0")
                         sizeOrder = await self.get_size_order(self.botData["futuro1"], "OF")
                         limitAskFuturo1 = calcularLimit
-                        #self.log.info(f"precio mio {round(orden['price'],1) }")
-                        #self.log.info(f"limitAskFuturo1 {round(limitAskFuturo1,1)}")
-                        #self.log.info(f"size mio: {orden['leavesQty']}")
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitAskFuturo1 {round(limitAskFuturo1,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
                         if orden['leavesQty']==0:
                             return False
-                        #self.log.info(f"size a poner : {sizeOrder}")
+                        self.log.info(f"size a poner : {sizeOrder}")
                         if round(orden['price'],1) != round(limitAskFuturo1,1) or orden['leavesQty'] != sizeOrder:
-                            #self.log.info("es diferente entonces mando a actualizar")
+                            self.log.info("es diferente entonces mando a actualizar")
                             if not self.paused.is_set():
                                 self.log.warning(f"paused esta activo")
                                 return
                             if orden['leavesQty'] != sizeOrder:
-                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1)
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1, orden["clave"])
                                 #self.log.info(f"orden modificada {modificarOrden}")
                             else:
                                 sizeOrder = orden['orderQty']
-                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1)
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],2, 2, self.botData["futuro1"], sizeOrder, limitAskFuturo1, orden["clave"])
                                 #self.log.info(f"orden modificada {modificarOrden}")
                         else:
                             self.log.info("es lo mismo asi q no actuaklizo ")
@@ -547,7 +554,7 @@ class botTriangulo(taskSeqManager):
 
                     if len(self._tickers[self.botData["futuro2"]]["OF"])==0:
                         #self.log.info(f"cancelamos orden xq en futuro2 el book esta vacio ")
-                        cancelarOrden = await self.clientR.cancelar_orden(orden["orderId"], orden["clOrdId"], 2, orden["orderQty"], self.botData["futuro2"])
+                        cancelarOrden = await self.clientR.cancelar_orden(orden["orderId"], orden["clOrdId"], 2, orden["orderQty"], self.botData["futuro2"], orden["clave"])
                         #self.log.info(f"cancelarOrden: {cancelarOrden}")
                         return
 
@@ -590,9 +597,12 @@ class botTriangulo(taskSeqManager):
             self.log.error(f"error en futuro1 ask: {e}")
 
     async def  verificar_futuro2_bid(self):
+        if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
         try: 
                 
-            #self.log.info("-----------------entrando a verificar_futuro2_bid--------------------")
+            self.log.info("-----------------entrando a verificar_futuro2_bid--------------------")
             verificarOrdenCreada = await self.clientR.get_order_limit_by_symbol_side(self.botData["futuro2"], "Buy" ) 
             if verificarOrdenCreada["status"]==True:
                 #self.log.info("tengo orden creada")
@@ -611,27 +621,27 @@ class botTriangulo(taskSeqManager):
                     if self.botData["soloEscucharMercado"] == True:
                         return
                     if calcularLimit>0:
-                        #self.log.info("moficicar")
+                        self.log.info("moficicar")
                         sizeOrder = await self.get_size_order(self.botData["futuro2"], "BI")
                         limitBidFuturo2 = calcularLimit
-                        #self.log.info(f"precio mio {round(orden['price'],1) }")
-                        #self.log.info(f"limitBidFuturo2 {round(limitBidFuturo2,1)}")
-                        #self.log.info(f"size mio: {orden['leavesQty']}")
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitBidFuturo2 {round(limitBidFuturo2,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
                         if orden['leavesQty']==0:
                             return False
-                        #self.log.info(f"size a poner : {sizeOrder}")
+                        self.log.info(f"size a poner : {sizeOrder}")
                         if round(orden['price'],1) != round(limitBidFuturo2,1) or orden['leavesQty'] != sizeOrder:
                         #modificar orden
                             if not self.paused.is_set():
                                 self.log.warning(f"paused esta activo")
                                 return
                             #self.log.info(f"orden operada = false, enviar a modificar orden")
-                            #self.log.info("es diferente entonces mando a actualizar")
+                            self.log.info("es diferente entonces mando a actualizar")
                             if orden['leavesQty'] != sizeOrder:
-                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2)
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2, orden["clave"])
                             else:
                                 sizeOrder = orden['orderQty']
-                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2)
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'],1, 2, self.botData["futuro2"],sizeOrder, limitBidFuturo2, orden["clave"])
                             #self.log.info(f"orden modificada {modificarOrden}")
                         else:
                             self.log.info("es lo mismo asi q no actuaklizo ")    
@@ -669,16 +679,21 @@ class botTriangulo(taskSeqManager):
             self.log.error(f"error en futuro2bid: {e}")
 
     async def  verificar_futuro2_ask(self): 
+        if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
         try:
-                
-            #self.log.info("entrando a verificar_futuro2_ask")
+            self.log.info("entrando a verificar_futuro2_ask")
             verificarOrdenCreada = await self.clientR.get_order_limit_by_symbol_side(self.botData["futuro2"], "Sell" ) 
+            self.log.info(f"verificarOrdenCreada {verificarOrdenCreada}")
             if verificarOrdenCreada["status"]==True:
-                #self.log.info("tengo orden creada")
+                self.log.info("tengo orden creada")
                 orden =  verificarOrdenCreada["data"]
+                self.log.info(f"orden {orden}")
+                self.log.info(f"price {orden['price']}")
                 #es true osea q si tengo orden 
                 #aqui debo verificar primnero q la orden de futuro1 bid no sea mia 
-                #self.log.info("voy a verificar futuro2 of")
+                self.log.info("voy a verificar futuro2 of")
                 verificarFuturo1 =  await self.verificar_primeraOrden_bookVacio(orden["price"], self._tickers[self.botData["futuro2"]]["OF"][0]["price"], self._tickers[self.botData["futuro2"]]["OF"])
                 #self.log.info("verificado status true")
                 #self.log.info("entonces puedo continuar ")
@@ -692,27 +707,27 @@ class botTriangulo(taskSeqManager):
                     if self.botData["soloEscucharMercado"] == True:
                         return
                     if calcularLimit>0:
-                        #self.log.info("moficicar")
+                        self.log.info("moficicar")
                         sizeOrder = await self.get_size_order(self.botData["futuro2"], "OF")
                         limitAskFuturo2 = calcularLimit
-                        #self.log.info(f"precio mio {round(orden['price'],1) }")
-                        #self.log.info(f"limitAskFuturo2 {round(limitAskFuturo2,1)}")
-                        #self.log.info(f"size mio: {orden['leavesQty']}")
+                        self.log.info(f"precio mio {round(orden['price'],1) }")
+                        self.log.info(f"limitAskFuturo2 {round(limitAskFuturo2,1)}")
+                        self.log.info(f"size mio: {orden['leavesQty']}")
                         if orden['leavesQty']==0:
                             return False
-                        #self.log.info(f"size a poner : {sizeOrder}")
+                        self.log.info(f"size a poner : {sizeOrder}")
                         if round(orden['price'],1) != round(limitAskFuturo2,1) or orden['leavesQty'] != sizeOrder :
                             #modificar orden
-                            #self.log.info("es diferente entonces mando a actualizar")
+                            self.log.info("es diferente entonces mando a actualizar")
                             if not self.paused.is_set():
                                 self.log.warning(f"paused esta activo")
                                 return
                             #self.log.info(f"orden operada = false, enviar a modificar orden")
                             if orden['leavesQty'] != sizeOrder:
-                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2)
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2, orden["clave"])
                             else:
                                 sizeOrder = orden['orderQty']
-                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2)
+                                modificarOrden = await self.clientR.modificar_orden_size(orden['orderId'], orden['clOrdId'], 2, 2, self.botData["futuro2"], sizeOrder, limitAskFuturo2, orden["clave"])
                             #self.log.info(f"orden modificada {modificarOrden}")
                         else:
                             self.log.info("es lo mismo asi q no actuaklizo ")
@@ -746,6 +761,9 @@ class botTriangulo(taskSeqManager):
                     
         except Exception as e: 
             self.log.error(f"error en futuro2 ask: {e}")
+            #traceback 
+            self.log.error(f"traceback: {traceback.format_exc()}")
+
 
     async def  verificar_pases(self):
         #self.log.info(f"vamos a verificar los pases del triangulo: {self.botData['id_bot']}, pase: {self._tickers[self.botData['paseFuturos']]} ")
@@ -775,13 +793,28 @@ class botTriangulo(taskSeqManager):
     async def  verificar_ordenes(self):
         try:
             if self.botData["soloEscucharMercado"] == False:
+                if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
                 await self.verificar_futuro1_bid()
+                if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
                 #self.log.info("fin verificar futuro1 bid")
                 await self.verificar_futuro1_ask()
+                if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
                 #self.log.info("fin verificar futuro1 ask")
                 await self.verificar_futuro2_bid()
+                if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
                 #self.log.info("fin verificar futuro2 bid")
                 await self.verificar_futuro2_ask()
+                if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
                 #self.log.info("fin verificar futuro2 ask")
                 await self.verificar_pases()
                 #self.log.info("fin verificar pases")
@@ -865,6 +898,9 @@ class botTriangulo(taskSeqManager):
         # Do something with the task
         #self.log.info(f"Executing task: {task}, en bot: {self.id}")
         if task["type"] == 0:
+            if not self.paused.is_set():
+                    self.log.warning(f"paused esta activo")
+                    return
             #self.log.info(f"aqui si verificamos puntas")
             await self.verificar_ordenes()
 

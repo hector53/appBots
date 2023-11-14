@@ -15,7 +15,7 @@ from app import urlAppFix
 import requests
 from app.clases.mainFix import MainFix
 import json
-
+import traceback
 
 class client_request():
     def __init__(self, id_bot, cuenta, mongo: PyMongo, mainFix: MainFix) -> None:
@@ -237,52 +237,151 @@ class client_request():
             return False
 
     async def get_order_limit_by_symbol_side(self, symbol, side, ordStatus="NEW", ordenBot=0):
+        from app import redis_cliente as redis_client
+        self.log.info("entrando a get_order_limit_by_symbol_side")
         try:
             self.log.info(f"symbol: {symbol}, side: {side}")
-            parametrosBusqueda = {
-                "symbol": symbol,
-                "side": side,
-                "ordStatus": ordStatus,
-                "ordenBot": ordenBot,
-                "id_bot": self.id_bot,
-                "cuenta": self.cuenta
-            }
-            query = {
-                "$and": [
-                    {"ordenBot": ordenBot},
-                    {"symbol": symbol},
-                    {"side": side},
-                    {"id_bot": self.id_bot},
-                    {"cuenta": self.cuenta},
-                    {"active": True},
-                    {
-                        "$or": [
-                            {"ordStatus": "NEW"},
-                            {
-                                "$and": [
-                                    {"ordStatus": "PARTIALLY FILLED"},
-                                    {"leavesQty": {"$gt": 0}}
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-            self.log.info(f"parametrosBusqueda: {parametrosBusqueda}")
-            orden = self.mongo.db.ordenes.find_one(query, {"_id": 0})
+            clave_symbol = f"symbol:{symbol}"
+            clave_id_bot = f"id_bot:{self.id_bot}"
+            clave_ordStatus_new = f"ordStatus:NEW"
+            clave_ordStatus_partially_filled = f"ordStatus:PARTIALLY FILLED"
+            clave_active = f"active:True"
+            clave_side = f"side:{side}"
+            clave_cuenta = f"cuenta:{self.cuenta}"
 
-            if orden is not None:
+            # Obtener claves para órdenes que cumplen con las condiciones
+            claves_symbol = redis_client.smembers(clave_symbol)
+            claves_id_bot = redis_client.smembers(clave_id_bot)
+            claves_ordStatus_new = redis_client.smembers(clave_ordStatus_new)
+            claves_ordStatus_partially_filled = redis_client.smembers(clave_ordStatus_partially_filled)
+            claves_active = redis_client.smembers(clave_active)
+            claves_side = redis_client.smembers(clave_side)
+            claves_cuenta = redis_client.smembers(clave_cuenta)
+
+
+            # Calcular la intersección de claves que cumplen con todas las condiciones
+            claves_interseccion = (
+                claves_cuenta & claves_side &
+                claves_active &
+                claves_symbol & claves_id_bot & claves_ordStatus_new  |
+                (claves_symbol & claves_id_bot & claves_ordStatus_partially_filled )
+            )
+
+            # Obtener detalles de órdenes a partir de las claves obtenidas
+            detalles_ordenes =[]
+            for clave in claves_interseccion:
+                orden = redis_client.hgetall(clave)
+                orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+                self.log.info(f"orden_decodificada: {orden_decodificada}")
+                #convertir campos a float
+                orden_decodificada["price"] = float(orden_decodificada["price"])
+                orden_decodificada["leavesQty"] = int(float(orden_decodificada["leavesQty"])) 
+                orden_decodificada["cumQty"] = int(float(orden_decodificada["cumQty"]))
+                orden_decodificada["orderQty"] = int(float(orden_decodificada["orderQty"]))
+                orden_decodificada["lastQty"] = int(float(orden_decodificada["lastQty"]))
+                orden_decodificada["clave"] = clave.decode('utf-8')
+
+                if  orden_decodificada["leavesQty"]  > 0:
+                    detalles_ordenes.append(orden_decodificada)
+
+            if len(detalles_ordenes) > 0:
                 self.log.info("si existe la orden")
-                self.log.info(f"la orden es esta: {orden}")
-                return {"status": True, "data": orden}
+                self.log.info(f"la orden es esta: {detalles_ordenes}")
+                return {"status": True, "data": detalles_ordenes[0]}
             else:
                 self.log.info("no existe orden con esos parametros ")
                 return {"status": False, "msg": "no hay orden limit con esos parametros"}
         except Exception as e:
             self.log.error(f"error en get_order_limit_by_symbol_side: {e} ")
             return {"status": False}
-
+        
     async def es_orden_mia(self, orden, futuro, side, type_order="NEW", orderBot=0):
+        from app import redis_cliente as redis_client
+        response = {"status": False}
+        try:
+            sideDb = "Buy"
+            if side == "OF":
+                sideDb = "Sell"
+            parametros = {
+                "price": orden["price"],
+                "leavesQty": orden["size"],
+                "symbol": futuro,
+                "side": sideDb,
+                "ordStatus": type_order,
+                "id_bot": self.id_bot,
+                "cuenta": self.cuenta
+            }
+
+            clave_symbol = f"symbol:{futuro}"
+            clave_id_bot = f"id_bot:{self.id_bot}"
+            clave_ordStatus_new = f"ordStatus:NEW"
+            clave_ordStatus_partially_filled = f"ordStatus:PARTIALLY FILLED"
+            clave_leavesQty = f"leavesQty:"
+            clave_active = f"active:True"
+            clave_side = f"side:{sideDb}"
+            clave_cuenta = f"cuenta:{self.cuenta}"
+
+            # Obtener claves para órdenes que cumplen con las condiciones
+            claves_symbol = redis_client.smembers(clave_symbol)
+            claves_id_bot = redis_client.smembers(clave_id_bot)
+            claves_ordStatus_new = redis_client.smembers(clave_ordStatus_new)
+            claves_ordStatus_partially_filled = redis_client.smembers(clave_ordStatus_partially_filled)
+            claves_active = redis_client.smembers(clave_active)
+            claves_side = redis_client.smembers(clave_side)
+            claves_cuenta = redis_client.smembers(clave_cuenta)
+
+
+            # Calcular la intersección de claves que cumplen con todas las condiciones
+            claves_interseccion = (
+                claves_cuenta & claves_side &
+                claves_active &
+                claves_symbol & claves_id_bot & claves_ordStatus_new  |
+                (claves_symbol & claves_id_bot & claves_ordStatus_partially_filled & redis_client.smembers(f"{clave_leavesQty}{orden['size']}"))
+            )
+
+            # Obtener detalles de órdenes a partir de las claves obtenidas
+            detalles_ordenes =[]
+            for clave in claves_interseccion:
+                orden = redis_client.hgetall(clave)
+                orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+                detalles_ordenes.append(orden_decodificada)
+            if len(detalles_ordenes) > 0:
+                response = {"status": True, "orden": detalles_ordenes[0]}
+        except Exception as e:
+            self.log.error(f"error en es_orden_mia: {e} ")
+        return response
+        
+    async def es_orden_mia_nueva_mnal(self, orden, futuro, side, type_order="NEW", orderBot=0):
+        from app import redis_cliente as redis_client
+        response = {"status": False}
+        try:
+            sideDb = "Buy" if side == "OF" else "Sell"
+            claves = [
+                f"symbol:{futuro}",
+                f"id_bot:{self.id_bot}",
+                f"ordStatus:NEW",
+                f"ordStatus:PARTIALLY FILLED",
+                f"side:{sideDb}",
+                f"cuenta:{self.cuenta}",
+                f"leavesQty:{orden['size']}"
+                f"active:True"
+            ]
+            # Usar SINTER para obtener la intersección directamente
+            claves_interseccion = redis_client.sinter(*claves)
+            detalles_ordenes = []
+            for clave in claves_interseccion:
+                orden = redis_client.hgetall(clave)
+                orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+                detalles_ordenes.append(orden_decodificada)
+            if detalles_ordenes:
+                response = {"status": True, "orden": detalles_ordenes[0]}
+        except Exception as e:
+            self.log.error(f"error en es_orden_mia: {e}")
+            self.log.error(traceback.print_exc())
+        return response
+
+
+    async def es_orden_mia_vieja(self, orden, futuro, side, type_order="NEW", orderBot=0):
         response = {"status": False}
         try:
             sideDb = "Buy"
@@ -731,7 +830,7 @@ class client_request():
             details["ordenBot"] = 0
             details["id_bot"] = self.id_bot
             details["cuenta"] = self.cuenta
-            details["active"] = active
+            details["active"] = str(active)
             # transactTime viene asi "20230505-13:06:33.561" quiero convertirla a datetime
            # details["transactTime"] = datetime.strptime(details["transactTime"], '%Y%m%d-%H:%M:%S.%f')
           #  utc_tz = pytz.timezone('Etc/UTC')
@@ -742,8 +841,8 @@ class client_request():
             if len(clientOrderID) > 8:
                 self.log.info("es ordenBot 1 xq tiene mas de 8 caracteres")
                 details["ordenBot"] = 1
-            saveOrder = self.mongo.db.ordenes.insert_one(details)
-            # self.guardar_orden_redis(details)
+           # saveOrder = self.mongo.db.ordenes.insert_one(details)
+            saveOrder = await self.guardar_orden_redis(details)
 
         except Exception as e:
             self.log.error(f"error guardando o actualziadno: {e}")
@@ -770,12 +869,58 @@ class client_request():
 
     async def guardar_orden_redis(self, orden):
         from app import redis_cliente
-        # Generar una clave única para la orden (puedes usar algún identificador único)
-        clave_orden = f"orden:{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-        # Almacenar la orden como un hash en Redis
-        redis_cliente.hset(clave_orden, mapping=orden)
-        # Agregar la clave de la orden al conjunto de índices
-        redis_cliente.sadd("ordenes:indice", clave_orden)
+        import uuid
+        self.log.info(f"guardar_orden_redis: {orden}")
+        try:
+            orderUuid = uuid.uuid4()
+            clave_orden = f"orden:{orderUuid}"
+            # Iniciar una transacción de Redis
+            pipeline = redis_cliente.pipeline()
+            # Agregar operaciones al pipeline
+            pipeline.hset(clave_orden, mapping=orden)
+            pipeline.sadd(f"symbol:{orden['symbol']}", clave_orden)
+            pipeline.sadd(f"side:{orden['side']}", clave_orden)
+            # ... Continuar agregando otras operaciones ...
+            redis_cliente.sadd(f"cuenta:{orden['cuenta']}", clave_orden)
+            redis_cliente.sadd(f"id_bot:{orden['id_bot']}", clave_orden)
+            redis_cliente.sadd(f"ordStatus:{orden['ordStatus']}", clave_orden)
+            redis_cliente.sadd(f"leavesQty:{orden['leavesQty']}", clave_orden)
+            redis_cliente.sadd(f"active:{orden['active']}", clave_orden)
+            #ordenBot
+            redis_cliente.sadd(f"ordenBot:{orden['ordenBot']}", clave_orden)
+
+            # Ejecutar todas las operaciones como una transacción
+            pipeline.execute()
+
+            self.log.info(f"orden guardada correctamente")
+        except Exception as e: 
+            self.log.error(f"error en guardar_orden_redis: {e}")
+            return False
+
+    async def guardar_orden_redis_vieja(self, orden):
+        from app import redis_cliente
+        self.log.info(f"guardar_orden_redis: {orden}")
+        try:
+            # Generar una clave única para la orden (puedes usar algún identificador único)
+            clave_orden = f"orden:{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+            # Almacenar la orden como un hash en Redis
+            redis_cliente.hset(clave_orden, mapping=orden)
+            # Agregar la clave de la orden al conjunto de índices
+            # Crear conjuntos adicionales para índices inversos
+            redis_cliente.sadd(f"symbol:{orden['symbol']}", clave_orden)
+            redis_cliente.sadd(f"side:{orden['side']}", clave_orden)
+            redis_cliente.sadd(f"cuenta:{orden['cuenta']}", clave_orden)
+            redis_cliente.sadd(f"id_bot:{orden['id_bot']}", clave_orden)
+            redis_cliente.sadd(f"ordStatus:{orden['ordStatus']}", clave_orden)
+            redis_cliente.sadd(f"leavesQty:{orden['leavesQty']}", clave_orden)
+            redis_cliente.sadd(f"active:{orden['active']}", clave_orden)
+            #ordenBot
+            redis_cliente.sadd(f"ordenBot:{orden['ordenBot']}", clave_orden)
+            self.log.info(f"orden guardada correctamente")
+        except Exception as e: 
+            self.log.error(f"error en guardar_orden_redis: {e}")
+            return False
+
 
     async def modifyOrderFix(self, orderId, origClOrdId, side, orderType, symbol, quantity, price):
         self.log.info(f"entrando a modifyOrderFix")
@@ -813,7 +958,7 @@ class client_request():
             print("Ocurrió un error: ", err)
             return {"llegoRespuesta": False}
 
-    async def modificar_orden_size(self, orderId, origClOrdId, side, orderType, symbol, quantity, price):
+    async def modificar_orden_size(self, orderId, origClOrdId, side, orderType, symbol, quantity, price, claveRedis=""):
         self.log.info(
             f"modify orden size to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot }")
        # self.f.responseModify = None
@@ -829,7 +974,7 @@ class client_request():
                     self.log.info(
                         f"es una orden filled, osea una rden q se ejecuto market, entonces no la guardo por aqui")
                     self.log.info(f"pero si vamos a deshabilitar la vieja")
-                    await self.disable_order_status(orderId, origClOrdId)
+                    await self.disable_order_status(claveRedis)
                 elif order["data"]["typeFilled"] == 0 and order["data"]["reject"] == 'true':
                     self.log.info(
                         f"no se modifico la orden, arriba dira el motivo")
@@ -839,7 +984,7 @@ class client_request():
                     self.log.info(
                         f"no es filled ni tampoco reject, entonces es normal osea se cumplio bien, entonces guardo")
                     self.log.info(f"desactivar anterior")
-                    await self.disable_order_status(orderId, origClOrdId)
+                    await self.disable_order_status(claveRedis)
                     await self.save_order_details(order["data"], True)
             response = order
         except Exception as e:
@@ -965,7 +1110,7 @@ class client_request():
             print("Ocurrió un error: ", err)
             return {"llegoRespuesta": False}
 
-    async def cancelar_orden(self, orderID, OrigClOrdID, side, quantity, symbol):
+    async def cancelar_orden(self, orderID, OrigClOrdID, side, quantity, symbol, claveRedis=""):
         self.log.info(
             f"cancelar orden to app {orderID, OrigClOrdID, side, quantity, symbol, self.id_bot, self.cuenta}")
         try:
@@ -985,15 +1130,29 @@ class client_request():
                     self.log.info(
                         f"no es reject, entonces es normal osea se cumplio bien, entonces guardo")
                     self.log.info(f"desactivar anterior")
-                    await self.disable_order_status(orderID, OrigClOrdID)
+                    await self.disable_order_status(claveRedis)
                     await self.save_order_details(order["data"], False)
             response = order
         except Exception as e:
             response = {"llegoRespuesta": False}
             self.log.error(f"error cancelando orden: {e}")
         return response
+    
+    async def disable_order_status(self, claveRedis):
+        from app import redis_cliente as redis_client
+        try:
+            self.log.info(
+                f"entrando a disable order status con redis: {claveRedis}")
+            orden = {"active": "False"}
+            redis_client.hset(claveRedis, mapping=orden)
+            return True
+        except Exception as e:
+            self.log.error(
+                f"error en disable order status orden redis: {claveRedis}, error: {e}")
+            return False
 
-    async def disable_order_status(self, orderId, clOrdId):
+
+    async def disable_order_status_vieja(self, orderId, clOrdId):
         try:
             self.log.info(
                 f"entrando a disable order status: {orderId}, {clOrdId}")
@@ -1033,6 +1192,61 @@ class client_request():
    # async def buscar_orden_book(orderID, OrigClOrdID):
 
     async def cancelar_orden_haberla(self, futuro, side):
+        from app import redis_cliente as redis_client
+        self.log.info(f"cancelar orden haberla {futuro, side}")
+        response = {"status": False}
+        try:
+            clave_symbol = f"symbol:{futuro}"
+            clave_id_bot = f"id_bot:{self.id_bot}"
+            clave_ordStatus_new = f"ordStatus:NEW"
+            clave_active = f"active:True"
+            clave_side = f"side:{side}"
+            clave_cuenta = f"cuenta:{self.cuenta}"
+            #ordenBot
+            clave_ordenBot = f"ordenBot:0"
+
+            # Obtener claves para órdenes que cumplen con las condiciones
+            claves_symbol = redis_client.smembers(clave_symbol)
+            claves_id_bot = redis_client.smembers(clave_id_bot)
+            claves_ordStatus_new = redis_client.smembers(clave_ordStatus_new)
+            claves_active = redis_client.smembers(clave_active)
+            claves_side = redis_client.smembers(clave_side)
+            claves_cuenta = redis_client.smembers(clave_cuenta)
+            claves_ordenBot = redis_client.smembers(clave_ordenBot)
+
+
+            # Calcular la intersección de claves que cumplen con todas las condiciones
+            claves_interseccion = (
+                claves_cuenta & claves_side &
+                claves_active &
+                claves_symbol & claves_id_bot & claves_ordStatus_new & claves_ordenBot
+            )
+
+            # Obtener detalles de órdenes a partir de las claves obtenidas
+            detalles_ordenes =[]
+            for clave in claves_interseccion:
+                orden = redis_client.hgetall(clave)
+                orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+                self.log.info(f"orden_decodificada: {orden_decodificada}")
+                #convertir campos a float
+                orden_decodificada["price"] = float(orden_decodificada["price"])
+                orden_decodificada["leavesQty"] = int(float(orden_decodificada["leavesQty"])) 
+                orden_decodificada["cumQty"] = int(float(orden_decodificada["cumQty"]))
+                orden_decodificada["orderQty"] = int(float(orden_decodificada["orderQty"]))
+                orden_decodificada["lastQty"] = int(float(orden_decodificada["lastQty"]))
+
+                if  orden_decodificada["leavesQty"]  > 0:
+                    detalles_ordenes.append(orden_decodificada)
+            if len(detalles_ordenes) > 0:
+                xa = detalles_ordenes[0]
+                cancelarOrden = await self.cancelar_orden(orderID=xa["orderId"], OrigClOrdID=xa["clOrdId"], side=side, quantity=xa["orderQty"], symbol=futuro)
+                self.log.info(f"cancelar orden haberla {cancelarOrden}")
+                response = {"status": True, "response": cancelarOrden}
+        except Exception as e:
+            self.log.error(f"error en cancelar_orden_haberla: {e}")
+        return response
+
+    async def cancelar_orden_haberla_vieja(self, futuro, side):
         self.log.info(f"cancelar orden haberla {futuro, side}")
         response = {"status": False}
         try:

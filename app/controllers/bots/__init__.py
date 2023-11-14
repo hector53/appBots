@@ -7,6 +7,7 @@ from app import mongo, sesionesFix, ObjectId, logging, datetime
 from datetime import timedelta
 from app import fixM
 from collections import OrderedDict
+import traceback
 log = logging.getLogger(__name__)
 
 
@@ -267,6 +268,10 @@ class BotsController:
                         "cuenta": botE_cuenta,
                         "transactTime": {"$regex": f"^{fecha_actual_mas_4h_str}"},
                     }, {"_id": 0}).sort("transactTime", -1)
+
+                    ordenesToda = BotsModel.get_ordenes_bot_fecha(botE_id, botE_cuenta, fecha_actual_mas_4h_str)
+
+
                     futuro1 = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["futuro1"]
                     futuro2 = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["futuro2"]
                     paseFuturos = fixM.main_tasks[fix["user"]].botManager.main_tasks[botE_id].botData["paseFuturos"]
@@ -281,7 +286,7 @@ class BotsController:
                     posiciones=UtilsController.get_tenencias_bot(posiciones)
                     botE["limitsPuntas"]=fixM.main_tasks[fix["user"]
                         ].botManager.main_tasks[botE_id].botData["limitsBB"]
-                    botE["ordenesToda"]=list(ordenesToda)
+                    botE["ordenesToda"]=ordenesToda
                     botE["arrayBook"]=arrayBook
                     botE["posiciones"]=posiciones
                     botE["puertows"] = puertows
@@ -330,6 +335,7 @@ class BotsController:
                     return jsonify(botE)
         except Exception as e:
             log.error(f"error en get botchar: {e}")
+            log.error(f"traceback: {traceback.format_exc()}")
             abort(make_response(jsonify(message=f"botE error {e}"), 401))
 
     def deleteBot(id):
