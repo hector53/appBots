@@ -335,8 +335,7 @@ class client_request():
             claves_interseccion = (
                 claves_cuenta & claves_side &
                 claves_active &
-                claves_symbol & claves_id_bot & claves_ordStatus_new  |
-                (claves_symbol & claves_id_bot & claves_ordStatus_partially_filled & redis_client.smembers(f"{clave_leavesQty}{orden['size']}"))
+                claves_symbol & claves_id_bot & (claves_ordStatus_new  | ( claves_ordStatus_partially_filled & redis_client.smembers(f"{clave_leavesQty}{orden['size']}")))
             )
 
             # Obtener detalles de órdenes a partir de las claves obtenidas
