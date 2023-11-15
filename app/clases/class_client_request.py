@@ -263,8 +263,8 @@ class client_request():
             claves_interseccion = (
                 claves_cuenta & claves_side &
                 claves_active &
-                claves_symbol & claves_id_bot & claves_ordStatus_new  |
-                (claves_symbol & claves_id_bot & claves_ordStatus_partially_filled )
+                claves_symbol & claves_id_bot & ( claves_ordStatus_new  |
+                claves_ordStatus_partially_filled )
             )
 
             # Obtener detalles de órdenes a partir de las claves obtenidas
@@ -886,6 +886,8 @@ class client_request():
             redis_cliente.sadd(f"ordStatus:{orden['ordStatus']}", clave_orden)
             redis_cliente.sadd(f"leavesQty:{orden['leavesQty']}", clave_orden)
             redis_cliente.sadd(f"active:{orden['active']}", clave_orden)
+            redis_cliente.sadd(f"clOrdId:{orden['clOrdId']}", clave_orden)
+            redis_cliente.sadd(f"orderId:{orden['orderId']}", clave_orden)
             #ordenBot
             redis_cliente.sadd(f"ordenBot:{orden['ordenBot']}", clave_orden)
 
@@ -960,7 +962,7 @@ class client_request():
 
     async def modificar_orden_size(self, orderId, origClOrdId, side, orderType, symbol, quantity, price, claveRedis=""):
         self.log.info(
-            f"modify orden size to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot }")
+            f"modify orden size to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot, claveRedis}")
        # self.f.responseModify = None
         try:
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
@@ -1130,13 +1132,41 @@ class client_request():
                     self.log.info(
                         f"no es reject, entonces es normal osea se cumplio bien, entonces guardo")
                     self.log.info(f"desactivar anterior")
-                    await self.disable_order_status(claveRedis)
+                    await self.disable_order_status_by_orderId(orderID, OrigClOrdID)
                     await self.save_order_details(order["data"], False)
             response = order
         except Exception as e:
             response = {"llegoRespuesta": False}
             self.log.error(f"error cancelando orden: {e}")
         return response
+    
+    #orderId, clOrdId
+
+    async def disable_order_status_by_orderId(self, orderId, clOrdId):
+        from app import redis_cliente as redis_client
+        try:
+            self.log.info(
+                f"entrando a disable_order_status_by_orderId: {orderId, clOrdId}")
+            claves = [
+            f"orderId:{orderId}",
+            f"clOrdId:{clOrdId}",
+            f"active:True"
+            ]
+            # Usar SINTER para obtener la intersección directamente
+            claves_interseccion = redis_client.sinter(*claves)
+            for clave in claves_interseccion:
+                self.log.info(f"cambiando status de orden: {clave}")
+                orden = {"active": "False"}
+                redis_client.hset(clave, mapping=orden)
+                #tambien quiero quitar el set 
+                redis_client.srem(f"active:True", clave)
+                #y añadir el set de active false
+                redis_client.sadd(f"active:False", clave)
+            return True
+        except Exception as e:
+            self.log.error(
+                f"error en disable order status orden redis: {claveRedis}, error: {e}")
+            return False
     
     async def disable_order_status(self, claveRedis):
         from app import redis_cliente as redis_client
@@ -1145,6 +1175,10 @@ class client_request():
                 f"entrando a disable order status con redis: {claveRedis}")
             orden = {"active": "False"}
             redis_client.hset(claveRedis, mapping=orden)
+            #tambien quiero quitar el set 
+            redis_client.srem(f"active:True", claveRedis)
+            #y añadir el set de active false
+            redis_client.sadd(f"active:False", claveRedis)
             return True
         except Exception as e:
             self.log.error(

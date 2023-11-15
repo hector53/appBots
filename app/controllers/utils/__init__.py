@@ -276,6 +276,7 @@ class UtilsController:
 
     async def get_ordenes_by_id_bot(id_bot, cuenta):
         from app import redis_cliente as redis_client
+        log.info(f"entrando a get_ordenes_by_id_bot { id_bot, cuenta}")
         detalles_ordenes = []
         claves = [
                 f"id_bot:{id_bot}",
@@ -284,8 +285,15 @@ class UtilsController:
             ]
         claves_interseccion = redis_client.sinter(*claves)
         for clave in claves_interseccion:
+            log.info(f"clave: {clave}")
             orden = redis_client.hgetall(clave)
             orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+            orden_decodificada["price"] = float(orden_decodificada["price"])
+            orden_decodificada["leavesQty"] = int(float(orden_decodificada["leavesQty"])) 
+            orden_decodificada["cumQty"] = int(float(orden_decodificada["cumQty"]))
+            orden_decodificada["orderQty"] = int(float(orden_decodificada["orderQty"]))
+            orden_decodificada["lastQty"] = int(float(orden_decodificada["lastQty"]))
+            orden_decodificada["clave"] = clave.decode('utf-8')
             detalles_ordenes.append(orden_decodificada)
         return detalles_ordenes
             
@@ -310,7 +318,7 @@ class UtilsController:
                     await getFixTask.botManager.main_tasks[id_bot].pause()
                     await getFixTask.botManager.main_tasks[id_bot].detenerBot()
                     ordenes = await UtilsController.get_ordenes_by_id_bot(id_bot, cuenta)
-
+                    log.info(f"ordenes: {ordenes}")
                     if ordenes:
                         ordenesBorrar = ordenes
                         log.info(f"ordenes: {ordenesBorrar}")

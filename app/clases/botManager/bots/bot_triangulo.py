@@ -955,7 +955,7 @@ class botTriangulo(taskSeqManager):
                 #self.log.info("enviando a operar orden  ")
                 order = await self.operar_orden(details, lastOrderID)
                 await self.actualizar_posiciones(details)
-                await self.clientR.disable_order_status(orderId, clOrdId)
+                await self.clientR.disable_order_status_by_orderId(orderId, clOrdId)
                 await self.clientR.save_order_details(details, activeOrder)
                 #self.log.info(                    f"llego respuesta de ordenes contrarias operadas: {order}")
                 if order["ordenNew"]["llegoRespuesta"] == True:
@@ -976,7 +976,7 @@ class botTriangulo(taskSeqManager):
                 #self.log.info("es una orden B osea contraria")
              #   await self.clientR.disable_order_status(orderId, clOrdId)
               #  await self.clientR.save_order_details(details, activeOrder)
-                asyncio.create_task(self.clientR.disable_order_status(orderId, clOrdId))
+                asyncio.create_task(self.clientR.disable_order_status_by_orderId(orderId, clOrdId))
                 asyncio.create_task(self.clientR.save_order_details(details, activeOrder))
             response = True
         except Exception as e:
