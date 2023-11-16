@@ -299,19 +299,7 @@ class client_request():
         from app import redis_cliente as redis_client
         response = {"status": False}
         try:
-            sideDb = "Buy"
-            if side == "OF":
-                sideDb = "Sell"
-            parametros = {
-                "price": orden["price"],
-                "leavesQty": orden["size"],
-                "symbol": futuro,
-                "side": sideDb,
-                "ordStatus": type_order,
-                "id_bot": self.id_bot,
-                "cuenta": self.cuenta
-            }
-
+            sideDb = "Buy" if side == "OF" else "Sell"
             clave_symbol = f"symbol:{futuro}"
             clave_id_bot = f"id_bot:{self.id_bot}"
             clave_ordStatus_new = f"ordStatus:NEW"
@@ -1493,12 +1481,12 @@ class client_request():
                         response["primeraOrden"] = True
                         break
                     self.log.info(f"es mia")
-                    if mia["orden"] == 1:
-                        self.log.info(f"es mia y es ordenBot pegada")
-                        ordenesMias += 1
-                    else:
-                        self.log.info(f"es mia y es orden limit normal")
-                        ordenesMias += 1
+                 #   if mia["orden"] == 1:
+                  #      self.log.info(f"es mia y es ordenBot pegada")
+                  #      ordenesMias += 1
+                 #   else:
+                  #      self.log.info(f"es mia y es orden limit normal")
+                   #     ordenesMias += 1
                 else:
                     self.log.info(f"no es mia, guardando indice")
                     self.log.info(

@@ -62,7 +62,7 @@ class MainFix():
                     self.log.info(f"llego tarea nueva: {task}")
                     asyncio.create_task(self.process_message(task))
                     await self.message_queue.marcar_completada(task)
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.001)
         except Exception as e:
             # Manejar la excepción adecuadamente
             self.log.error(f"Se ha producido una excepción: {e}")
@@ -200,7 +200,7 @@ class MainFix():
                 ##self.log.info(f"contadorOperada: {self.botManager.main_tasks[id_bot].contadorOperada}")
                 if self.botManager.main_tasks[id_bot].contadorOperada == 0:
                     ##self.log.info(f"contador = 0, pongo pausa")
-                    asyncio.create_task(self.botManager.main_tasks[id_bot].pause()) 
+                    self.botManager.main_tasks[id_bot].pause()
                 self.botManager.main_tasks[id_bot].contadorOperada+=1
                 ##self.log.info(f"paused:{self.botManager.main_tasks[id_bot].paused}")
                 self.log.info(f"mandar a verificar orden para q opere contraria, hacerlo en nueva hilo")
