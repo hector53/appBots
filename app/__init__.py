@@ -8,8 +8,8 @@ from app.clases.fixManager import fixManager
 import logging
 import time
 import redis
-#logging.basicConfig(filename=f'reportsBots.log', level=logging.INFO,
- #                   format='%(asctime)s %(name)s  %(levelname)s  %(message)s  %(lineno)d ')
+logging.basicConfig(filename=f'reportsBots.log', level=logging.INFO,
+                    format='%(asctime)s %(name)s  %(levelname)s  %(message)s  %(lineno)d ')
 log = logging.getLogger(__name__)
    
 app = Flask(__name__)

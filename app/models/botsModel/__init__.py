@@ -24,7 +24,7 @@ class BotsModel:
             for clave in claves_interseccion:
                 orden = redis_client.hgetall(clave)
                 orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
-                log.info(f"orden_decodificada: {orden_decodificada}")
+               # log.info(f"orden_decodificada: {orden_decodificada}")
                 #convertir campos a float
                 orden_decodificada["price"] = float(orden_decodificada["price"])
                 orden_decodificada["leavesQty"] = int(float(orden_decodificada["leavesQty"])) 

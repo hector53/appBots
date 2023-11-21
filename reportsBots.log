@@ -1,32 +1,39 @@
-2023-11-16 08:51:46,012 werkzeug  INFO  [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2023-11-21 08:52:51,178 werkzeug  INFO  [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:4000
- * Running on http://192.168.0.183:4000  186 
-2023-11-16 08:51:46,015 werkzeug  INFO  [33mPress CTRL+C to quit[0m  186 
-2023-11-16 08:54:48,601 MainFix  ERROR  se cerro el run d ela tarea main fix  47 
-2023-11-16 08:54:48,607 werkzeug  INFO  127.0.0.1 - - [16/Nov/2023 08:54:48] "POST /api/iniciar_fix/new HTTP/1.1" 200 -  186 
-2023-11-16 08:54:49,137 websocket  INFO  Websocket connected  76 
-2023-11-16 08:54:51,362 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'MERV'}  62 
-2023-11-16 08:54:51,363 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'MERV'}  224 
-2023-11-16 08:54:51,364 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'DUAL'}  62 
-2023-11-16 08:54:51,367 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'DUAL'}  224 
-2023-11-16 08:54:51,369 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'MATBA', 'text': 'EXTERNAL'}  62 
-2023-11-16 08:54:51,371 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'MATBA', 'text': 'EXTERNAL'}  224 
-2023-11-16 08:54:51,372 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'RFXI'}  62 
-2023-11-16 08:54:51,373 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'RFXI'}  224 
-2023-11-16 08:54:51,374 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'DDF'}  62 
-2023-11-16 08:54:51,375 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'DDF'}  224 
-2023-11-16 08:54:51,376 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'DDA'}  62 
-2023-11-16 08:54:51,377 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '[N/A]', 'tradSesStatus': 'Open', 'marketID': 'ROFX', 'marketSegmentID': 'DDA'}  224 
-2023-11-16 08:54:51,851 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '1', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  62 
-2023-11-16 08:54:51,853 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '1', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  224 
-2023-11-16 08:54:51,854 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '2', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Closed'}  62 
-2023-11-16 08:54:51,855 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '2', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Closed'}  224 
-2023-11-16 08:54:51,955 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '4', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  62 
-2023-11-16 08:54:51,957 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '4', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  224 
-2023-11-16 08:59:02,008 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '3', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  62 
-2023-11-16 08:59:02,009 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '3', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  224 
-2023-11-16 08:59:02,045 MainFix  INFO  llego tarea nueva: {'tradingSessionId': '2', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  62 
-2023-11-16 08:59:02,045 MainFix  INFO  procesando tarea.....: {'tradingSessionId': '2', 'tradSesStatus': 'Unknown', 'marketID': 'ROFX', 'marketSegmentID': '[N/A]', 'tradingSessionSubId': 'Trading'}  224 
-2023-11-16 09:04:35,902 websocket  INFO  [Errno 10054] Se ha forzado la interrupción de una conexión existente por el host remoto - reconnect  76 
-2023-11-16 09:04:36,457 websocket  INFO  reconnect() - retrying in 5 seconds [6 frames in stack]  76 
+ * Running on http://192.168.0.192:4000  96 
+2023-11-21 08:52:51,178 werkzeug  INFO  [33mPress CTRL+C to quit[0m  96 
+2023-11-21 08:52:57,220 app  ERROR  Exception on /api/iniciar_fix/new [POST]  1414 
+Traceback (most recent call last):
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\flask_cors\extension.py", line 165, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\flask\app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\asgiref\sync.py", line 277, in __call__
+    return call_result.result()
+  File "C:\Users\Hector\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\Hector\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\envpython\lib\site-packages\asgiref\sync.py", line 353, in main_wrap
+    result = await self.awaitable(*args, **kwargs)
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\app\controllers\fixSocket\__init__.py", line 10, in init_socket
+    mainFixC = MainFix(req_obj["user"], req_obj["account"], req_obj["accountFixId"], req_obj["puertows"])
+  File "D:\Trabajo Programador\Nacho Forobeta Argentina\rofexbyma\appBots\app\clases\mainFix.py", line 30, in __init__
+    self.ws = websocket.WebSocketApp(f"ws://127.0.0.1:{self.port}",
+AttributeError: module 'websocket' has no attribute 'WebSocketApp'
+2023-11-21 08:52:57,224 werkzeug  INFO  127.0.0.1 - - [21/Nov/2023 08:52:57] "[35m[1mPOST /api/iniciar_fix/new HTTP/1.1[0m" 500 -  96 
+2023-11-21 09:03:57,370 werkzeug  INFO  [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:4000
+ * Running on http://192.168.0.192:4000  96 
+2023-11-21 09:03:57,370 werkzeug  INFO  [33mPress CTRL+C to quit[0m  96 
+2023-11-21 09:04:05,076 MainFix  ERROR  se cerro el run d ela tarea main fix  47 
+2023-11-21 09:04:05,077 werkzeug  INFO  127.0.0.1 - - [21/Nov/2023 09:04:05] "POST /api/iniciar_fix/new HTTP/1.1" 200 -  96 
+2023-11-21 09:04:05,578 websocket  INFO  Websocket connected  76 

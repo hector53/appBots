@@ -18,9 +18,10 @@ import json
 import traceback
 
 class client_request():
-    def __init__(self, id_bot, cuenta, mongo: PyMongo, mainFix: MainFix) -> None:
+    def __init__(self, id_bot, cuenta, mongo: PyMongo, mainFix: MainFix, botActual:None) -> None:
         self.log = logging.getLogger(f"client_request_{id_bot}")
         self.mongo = mongo
+        self.botActual = botActual
        # self.log.setLevel(logging.INFO)
       #  self.log.addHandler(log.handlers[0])
       #  self.log.propagate = False
@@ -35,6 +36,17 @@ class client_request():
         self.clOrdIdEsperar = {}
         self.codigoSuscribir = ""
         self.mainFix = mainFix
+        self.useLogs = True
+
+    def logInfo(self, msg):
+        if self.useLogs:
+            self.log.info(msg)
+    def logWarning(self, msg):
+        if self.useLogs:
+            self.log.warning(msg)
+    def logError(self, msg):
+        if self.useLogs:
+            self.log.error(msg)
 
     def round05(self, number):
         numero_redondeado = round(number*2)/2
@@ -46,12 +58,12 @@ class client_request():
         return ''.join(random.choice(letters) for i in range(stringLength))
 
     async def esperar_orden_operada(self):
-        self.log.info("orden operada en proceso, esperamos.....")
+        self.logInfo("orden operada en proceso, esperamos.....")
         while True:
             await asyncio.sleep(0.1)
             if len(self.colaOperadas.tareas) == 0:
                 break
-        self.log.info("ya se proceso la orden operada, continuamos....")
+        self.logInfo("ya se proceso la orden operada, continuamos....")
         return
 
     async def save_or_update_order(self, details):
@@ -60,9 +72,9 @@ class client_request():
             details["ordenBot"] = 0
             details["id_bot"] = self.id_bot
             details["cuenta"] = self.cuenta
-            self.log.info(f"entrando a save or update orde r")
+            self.logInfo(f"entrando a save or update orde r")
             if len(clientOrderID) > 8:
-                self.log.info("es ordenBot 1 xq tiene mas de 8 caracteres")
+                self.logInfo("es ordenBot 1 xq tiene mas de 8 caracteres")
                 details["ordenBot"] = 1
             updateOrNew = self.mongo.db.ordenes.find_one_and_replace(
                 filter={"clOrdId": details["clOrdId"],
@@ -101,7 +113,7 @@ class client_request():
                 self.clOrdIdEsperar[clientOrderID]["status"] = 4
 
     async def tarea_asincrona(self, details):
-        self.log.info(f"ejecutando operada como hilo")
+        self.logInfo(f"ejecutando operada como hilo")
         await self.fix.triangulos[self.cuenta][self.id_bot].verificar_orden_operada(details)
 
     def ejecutar_tarea(self, details):
@@ -111,10 +123,10 @@ class client_request():
         loop.close()
 
     async def decode_message_fix(self, details, type):
-        self.log.info(
+        self.logInfo(
             f"entrando a decode_message_fix: type: {type}, details: {details}")
         if type == 3:
-            self.log.info(f"llego order filled o part ")
+            self.logInfo(f"llego order filled o part ")
            # self.colaOperadas.agregar_tarea(details)
             # Crear un nuevo hilo y ejecutar la tarea asincrónica en él
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -138,6 +150,7 @@ class client_request():
         return clOrdId
 
     async def getNextOrderBotID(self, cuenta, id_bot, parent):
+        self.logInfo("entrando a getNextOrderBotID")
         self.lastBotID += 1
         clOrdId = self.randomString(10)
         self.mainFix.OrdersIds[clOrdId] = {
@@ -147,11 +160,12 @@ class client_request():
             "lastOrderID": self.lastBotID,
             "parentId": parent
         }
+        self.logInfo("saliendo")
         return clOrdId
 
     async def suscribir_mercado_off(self, symbols):  # suscribe a mercado
        # status = {"status": False}
-        self.log.info(f"unsuscribir mercado {symbols}, de: {self.id_bot}")
+        self.logInfo(f"unsuscribir mercado {symbols}, de: {self.id_bot}")
         # necesito un codigo unico para identificar cuando llegue la notificacion de esto
       #  status = await self.fix.marketDataRequest(entries=[0, 1], symbols=symbols, subscription=2,
         #                          depth=5, updateType=0, uniqueID=codigo,id_bot=self.id_bot)
@@ -184,15 +198,15 @@ class client_request():
             return False
 
     async def suscribir_mercado(self, symbols):  # suscribe a mercado
-        self.log.info(f"Suscribir mercado {symbols}, de: {self.id_bot}")
+        self.logInfo(f"entrando a Suscribir mercado {symbols}, de: {self.id_bot}")
         # verificar si alguno de los codigos esta ya suscrito a la variable
         symbolsIterar = symbols
         codigosASuscribir = []
-        self.log.info(f"symbolsIterar: {symbolsIterar}")
-        self.log.info(
+        self.logInfo(f"symbolsIterar: {symbolsIterar}")
+        self.logInfo(
             f"self.mainFix.marketSymbolsSubs: {self.mainFix.marketSymbolsSubs}")
         for symbol in symbolsIterar:
-            self.log.info(f"symbol: {symbol}")
+            self.logInfo(f"symbol: {symbol}")
             if symbol in self.mainFix.marketSymbolsSubs:
                 # agrego este bot
                 self.mainFix.marketSymbolsSubs[symbol].append(self.id_bot)
@@ -202,9 +216,9 @@ class client_request():
                 self.mainFix.marketSymbolsSubs[symbol] = []
                 self.mainFix.marketSymbolsSubs[symbol].append(self.id_bot)
                 codigosASuscribir.append(symbol)
-        self.log.info(
+        self.logInfo(
             f"self.mainFix.marketSymbolsSubs: {self.mainFix.marketSymbolsSubs}")
-        self.log.info(f"codigosASuscribir: {codigosASuscribir}")
+        self.logInfo(f"codigosASuscribir: {codigosASuscribir}")
 
         if len(codigosASuscribir) == 0:
             return True
@@ -238,9 +252,9 @@ class client_request():
 
     async def get_order_limit_by_symbol_side(self, symbol, side, ordStatus="NEW", ordenBot=0):
         from app import redis_cliente as redis_client
-        self.log.info("entrando a get_order_limit_by_symbol_side")
+        self.logInfo("entrando a get_order_limit_by_symbol_side")
         try:
-            self.log.info(f"symbol: {symbol}, side: {side}")
+            self.logInfo(f"symbol: {symbol}, side: {side}")
             clave_symbol = f"symbol:{symbol}"
             clave_id_bot = f"id_bot:{self.id_bot}"
             clave_ordStatus_new = f"ordStatus:NEW"
@@ -272,7 +286,7 @@ class client_request():
             for clave in claves_interseccion:
                 orden = redis_client.hgetall(clave)
                 orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
-                self.log.info(f"orden_decodificada: {orden_decodificada}")
+              #  self.logInfo(f"orden_decodificada: {orden_decodificada}")
                 #convertir campos a float
                 orden_decodificada["price"] = float(orden_decodificada["price"])
                 orden_decodificada["leavesQty"] = int(float(orden_decodificada["leavesQty"])) 
@@ -285,11 +299,11 @@ class client_request():
                     detalles_ordenes.append(orden_decodificada)
 
             if len(detalles_ordenes) > 0:
-                self.log.info("si existe la orden")
-                self.log.info(f"la orden es esta: {detalles_ordenes}")
+              #  self.logInfo("si existe la orden")
+                self.logInfo(f"saliendo de la funcion, la orden es esta: {detalles_ordenes}")
                 return {"status": True, "data": detalles_ordenes[0]}
             else:
-                self.log.info("no existe orden con esos parametros ")
+                self.logInfo("saliendo de la funcion, no existe orden con esos parametros ")
                 return {"status": False, "msg": "no hay orden limit con esos parametros"}
         except Exception as e:
             self.log.error(f"error en get_order_limit_by_symbol_side: {e} ")
@@ -404,7 +418,7 @@ class client_request():
                     }
                 ]
             }
-            self.log.info(f"verificar si esta orden es mia: {parametros}")
+            self.logInfo(f"verificar si esta orden es mia: {parametros}")
             resultado = self.mongo.db.ordenes.find_one(query, {"_id": 0})
 
             if resultado:
@@ -414,7 +428,7 @@ class client_request():
         return response
 
     async def modificar_orden_rest(self, orderId, origClOrdId, side, orderType, symbol, quantity, price):
-        self.log.info(
+        self.logInfo(
             f"modify orden to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot }")
         sideRest = pyRofex.Side.BUY
         if side == 2:
@@ -423,37 +437,37 @@ class client_request():
         # cancelar la orden vieja
         try:
             cancelarVieja = pyRofex.cancel_order(client_order_id=origClOrdId)
-            self.log.info(f"cancelarVieja {cancelarVieja}")
+            self.logInfo(f"cancelarVieja {cancelarVieja}")
             response = {"status": 0, "msg": "no se pudo cancelar la orden"}
             if cancelarVieja["status"] == "OK":
-                self.log.info(f"se cancelo la orden vieja")
-                self.log.info("actualizar en db la orden vieja")
+                self.logInfo(f"se cancelo la orden vieja")
+                self.logInfo("actualizar en db la orden vieja")
                 updateOrden = await self.update_orden_vieja_db(2, orderId, origClOrdId)
-                self.log.info("ahora a crear la nueva orden")
+                self.logInfo("ahora a crear la nueva orden")
                 # crear la nueva orden
                 order = pyRofex.send_order(ticker=symbol,  side=sideRest, size=quantity,
                                            price=price,    order_type=pyRofex.OrderType.LIMIT)
-                self.log.info(f"nueva_orden_rest to app {order}")
+                self.logInfo(f"nueva_orden_rest to app {order}")
                 if order["status"] == "OK":
-                    self.log.info(
+                    self.logInfo(
                         f"se creo la orden, ahora consultar status para guardar en db")
                     statusOrder = pyRofex.get_order_status(
                         order["order"]["clientId"])
-                    self.log.info(f"statusOrder {statusOrder}")
+                    self.logInfo(f"statusOrder {statusOrder}")
                     if statusOrder["status"] == "OK":
-                        self.log.info(f"status ok continuamos")
+                        self.logInfo(f"status ok continuamos")
                         if statusOrder["order"]["status"] == "FILLED":
-                            self.log.info(f"status filled")
+                            self.logInfo(f"status filled")
                             response = {
                                 "status": 3, "msg": "se cancelo la orden vieja y se creo la nueva y se fue filled"}
                             guardarNew = await self.guardar_orden_nueva_in_db(statusOrder["order"], 3, 0)
                         elif statusOrder["order"]["status"] == "NEW":
-                            self.log.info(f"status new")
+                            self.logInfo(f"status new")
                             response = {
                                 "status": 1, "msg": "se cancelo la orden vieja y se creo la nueva y se quedo en new"}
                             guardarNew = await self.guardar_orden_nueva_in_db(statusOrder["order"], 0, 0)
                         elif statusOrder["order"]["status"] == "REJECTED":
-                            self.log.info(f"status rejected")
+                            self.logInfo(f"status rejected")
                             guardarNew = await self.guardar_orden_nueva_in_db(statusOrder["order"], 2, 0)
                             response = {
                                 "status": 2, "msg": "se cancelo la orden vieja y se creo la nueva y se quedo en rejected"}
@@ -481,7 +495,7 @@ class client_request():
             print("codigo de respuesta: ", response)
             if response.status_code == 200:
                 posiciones = response.json()
-                self.log.info(f"posiciones :{posiciones}")
+                self.logInfo(f"posiciones :{posiciones}")
                 # aqui guardar los simbolos en la variable
                 return posiciones["positions"]
             else:
@@ -494,7 +508,7 @@ class client_request():
             return []
 
     async def guardar_datos_bb_intradia(self, datos):
-        self.log.info("entrando a guardar_datos_bb_intradia")
+        self.logInfo("entrando a guardar_datos_bb_intradia")
         response = True
         try:
             fecha_actual = datetime.now()
@@ -505,7 +519,7 @@ class client_request():
                                                        "bb_ci": datos["bb_ci"],
                                                        "bb_48": datos["bb_48"],
                                                        })
-            self.log.info("datos guardados correctamente ")
+            self.logInfo("datos guardados correctamente ")
         except Exception as e:
             self.log.error(f"error guardando los datos intradia: {e}")
             response = False
@@ -513,10 +527,10 @@ class client_request():
 
     async def get_trades_manual(self, market_id, symbol, desde, hasta):
         try:
-            self.log.info("get trades manual")
+            self.logInfo("get trades manual")
             trades = self.rest.get_historical_trades(
                 market_id, symbol, desde, hasta)
-            self.log.info(f"trades {trades}")
+            self.logInfo(f"trades {trades}")
             return trades["trades"]
         except Exception as e:
             self.log.error(f"error en get_trades_manual: {e}")
@@ -524,9 +538,9 @@ class client_request():
 
     async def get_balance(self, account=""):
         try:
-            self.log.info(f"get balance {account} ")
+            self.logInfo(f"get balance {account} ")
             balance = self.rest.get_balance(account)
-            self.log.info(f"balance {balance}")
+            self.logInfo(f"balance {balance}")
             return balance["accountData"]
         except Exception as e:
             self.log.error(f"error solicitando balance: {e}")
@@ -535,28 +549,30 @@ class client_request():
     async def update_balance_general(self, cuenta=""):
         if cuenta == "":
             cuenta = self.cuenta
-        self.log.info("primero pedir el balance actual")
+        self.logInfo("primero pedir el balance actual")
         balance = await self.get_balance(cuenta)
-        self.log.info(f"balance {balance}")
+        self.logInfo(f"balance {balance}")
         if balance != 0:
             try:
-                self.log.info(f"ahora actualizar la variable ")
+                self.logInfo(f"ahora actualizar la variable ")
                 if "balance" in self.fix.triangulos[cuenta]:
                     self.fix.triangulos[cuenta]["balance"] = balance["detailedAccountReports"][
                         "0"]["currencyBalance"]["detailedCurrencyBalance"]
                 else:
                     self.fix.triangulos[cuenta]["balance"] = balance["detailedAccountReports"][
                         "0"]["currencyBalance"]["detailedCurrencyBalance"]
-                self.log.info(
+                self.logInfo(
                     f"nuevo balance es: {self.fix.triangulos[cuenta]['balance']}")
             except Exception as e:
                 self.log.error(f"error actualizando balance: {e}")
         else:
             self.log.error("error consultando balance")
 
+
     async def get_factor_value(self, symbol, factor=1):
+        self.logInfo(f"entrando a get_factor_value")
         try:
-            self.log.info("get get_factor_value")
+            self.logInfo("get get_factor_value")
             query = {"data.symbol": symbol,   "account_type": "demo"}
             unwind = {"$unwind": "$data"}
             match = {"$match": query}
@@ -564,18 +580,19 @@ class client_request():
             resultados = self.mongo.db.securitys.aggregate(
                 [unwind, match, proyeccion])
             symbolResult = list(resultados)
-            self.log.info(f"factor result: {symbolResult}")
+            self.logInfo(f"factor result: {symbolResult}")
             if len(symbolResult) > 0:
                 factor = symbolResult[0]["factor"]
-                self.log.info(f"factor: {factor}")
+                self.logInfo(f"factor: {factor}")
         except Exception as e:
             self.log.error(f"error en factor: {e}")
+        self.logInfo(f"saliendo de factor: {factor}")
         return factor
 
     async def getMinMax(self, symbol):
-        self.log.info(f"entrando a getMinMax")
+        self.logInfo(f"entrando a getMinMax")
         try:
-            self.log.info("get min increment")
+            self.logInfo("get min increment")
             query = {"data.symbol": symbol,   "account_type": "demo"}
             unwind = {"$unwind": "$data"}
             match = {"$match": query}
@@ -587,14 +604,14 @@ class client_request():
             if len(symbolResult) > 0:
                 obj["lowLimitPrice"] = symbolResult[0]["lowLimitPrice"]
                 obj["highLimitPrice"] = symbolResult[0]["highLimitPrice"]
-            self.log.info(f"getMinMax: {obj}")
+            self.logInfo(f"saliendo de getMinMax: {obj}")
             return obj
         except Exception as e:
             self.log.error(f"error en obj: {e}")
 
     async def get_min_increment(self, symbol, min_increment=0.50):
         try:
-            self.log.info("get min increment")
+            self.logInfo("get min increment")
             query = {"data.symbol": symbol,   "account_type": "demo"}
             unwind = {"$unwind": "$data"}
             match = {"$match": query}
@@ -605,20 +622,20 @@ class client_request():
             minIncrement = min_increment
             if len(symbolResult) > 0:
                 minIncrement = symbolResult[0]["minPriceIncrement"]
-            self.log.info(f"minIncrement: {minIncrement}")
+            self.logInfo(f"minIncrement: {minIncrement}")
             return minIncrement
         except Exception as e:
             self.log.error(f"error en get_min_increment: {e}")
 
     async def get_saldo_disponible(self, simbolo):
-        self.log.info(f"consultando saldo para el simbolo: {simbolo}")
+        self.logInfo(f"consultando saldo para el simbolo: {simbolo}")
         # aqui voy a verificar dependiendo del simbolo pero despues
         moneda = "ARS"
         if str(simbolo).endswith("D"):
             moneda = "USD D"
         try:
             saldo = self.mainFix.balance[self.cuenta][moneda]["available"]
-            self.log.info(f"el saldo disponible es: {saldo}")
+            self.logInfo(f"el saldo disponible es: {saldo}")
             return saldo
         except Exception as e:
             self.log.error(
@@ -637,15 +654,15 @@ class client_request():
             arrayOrdenes = []
             # [cibi, ciof, 48bi, 48of]
             if ordenes:
-                self.log.info("si existen las ordenes limits ")
+                self.logInfo("si existen las ordenes limits ")
                 ordenes = list(ordenes)
-                self.log.info(f"ordenes: {ordenes}")
+                self.logInfo(f"ordenes: {ordenes}")
                 ordenCiBi = {}
                 ordenCiOf = {}
                 orden48Bi = {}
                 orden48Of = {}
                 for x in ordenes:
-                    self.log.info(f"x: {x}")
+                    self.logInfo(f"x: {x}")
                     if "ci" in str(x["symbol"]).lower() and x["side"] == "Buy":
                         ordenCiBi = x
                     if "ci" in str(x["symbol"]).lower() and x["side"] == "Sell":
@@ -661,7 +678,7 @@ class client_request():
 
     async def modificar_orden_manual(self,  orderId, origClOrdId, side, orderType, symbol, quantity, price, sizeViejo):
         try:
-            self.log.info(
+            self.logInfo(
                 f"modify orden to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot }")
         # self.f.responseModify = None
             await self.cancelar_orden_manual(orderId, origClOrdId, side, sizeViejo, symbol)
@@ -673,7 +690,7 @@ class client_request():
 
     async def modificar_orden_manual_2(self,  orderId, origClOrdId, side, orderType, symbol, quantity, price):
         try:
-            self.log.info(
+            self.logInfo(
                 f"modify orden to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot }")
         # self.f.responseModify = None
             clOrdId = self.fix.getNextOrderID(self.cuenta, self.id_bot)
@@ -707,32 +724,32 @@ class client_request():
             "clOrdId": clOrdId
         }
         if typeOrderWait == 0:
-            self.log.info("es una orden nueva a esperar")
+            self.logInfo("es una orden nueva a esperar")
             self.clOrdIdEsperar[clOrdId] = {
                 "type": 0, "details": details, "status": 0, "msg": "en espera de respuesta"}
 
         if typeOrderWait == 1:
-            self.log.info("es una orden modify a esperar")
+            self.logInfo("es una orden modify a esperar")
             self.clOrdIdEsperar[clOrdId] = {
                 "type": 1, "details": details, "status": 0, "msg": "en espera de respuesta"}
 
         if typeOrderWait == 2:
-            self.log.info("es una orden cancelar a esperar")
+            self.logInfo("es una orden cancelar a esperar")
             self.clOrdIdEsperar[clOrdId] = {
                 "type": 2, "details": details, "status": 0, "msg": "en espera de respuesta"}
 
-        self.log.info(
+        self.logInfo(
             f"self.clOrdIdEsperar[clOrdId]: {self.clOrdIdEsperar[clOrdId]}")
 
     async def nueva_orden_contraria(self, symbol, side, quantity,  price, orderType, clOrdId="", ordenBot=0):
-        self.log.info(
+        self.logInfo(
             f"nueva_orden to app {symbol, side, quantity,  price, orderType}")
         try:
             # status 0=en espera 1=llego bien respeusta 2=error 3=filled
             if clOrdId == "":
                 clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             print("clOrdId", clOrdId)
-            self.log.info(f"clOrdId: {clOrdId}")
+            self.logInfo(f"clOrdId: {clOrdId}")
 
             await self.add_new_order_wait(symbol, side, quantity,  price, orderType, clOrdId, ordenBot, 0)
             self.fix.newOrderSingle(
@@ -743,7 +760,7 @@ class client_request():
         return response
 
     async def newOrderFix(self, clOrdId, symbol, side, quantity, price, orderType, cuenta):
-        self.log.info(f"entrando a newOrderFix")
+        self.logInfo(f"entrando a newOrderFix")
         payload = {
             "user_fix": self.mainFix.user,
             "cuenta": cuenta,
@@ -763,7 +780,7 @@ class client_request():
             print("codigo de respuesta: ", response)
             if response.status_code == 200:
                 data = response.json()
-                self.log.info(f"data :{data}")
+                self.logInfo(f"data :{data}")
                 # aqui guardar los simbolos en la variable
                 return data
             else:
@@ -776,42 +793,45 @@ class client_request():
             return {"llegoRespuesta": False}
 
     async def nueva_orden(self, symbol, side, quantity,  price, orderType, clOrdId="", ordenBot=0):
-        self.log.info(
-            f"nueva_orden to app {symbol, side, quantity,  price, orderType}")
+        self.logInfo(
+            f"entrando a nueva_orden to app {symbol, side, quantity,  price, orderType}")
         try:
             if clOrdId == "":
                 clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             # print("clOrdId", clOrdId)
-            self.log.info(f"clOrdId: {clOrdId}")
+            self.logInfo(f"clOrdId: {clOrdId}")
             order = await self.mainFix.newOrderFix(clOrdId, symbol, side, quantity, price, orderType, self.cuenta)
-            self.log.info(f"order new del clOrdId: {clOrdId}: {order}")
+            self.logInfo(f"order new del clOrdId: {clOrdId}: {order}")
             if order["llegoRespuesta"] == True:
-                self.log.info(
+                self.logInfo(
                     f"llego respuesta de nuevaOrden, vamos a validar carias cositas")
                 if order["data"]["typeFilled"] == 1:
                     test = "order filled"
-                    self.log.info(
+                    self.logInfo(
                         f"es una orden filled, osea una rden q se ejecuto market, entonces no la guardo por aqui")
                 elif order["data"]["typeFilled"] == 0 and order["data"]["reject"] == 'true':
                     test = "no se creo la orden"
-                    self.log.info(
+                    self.logInfo(
                         f"no se creo la orden, arriba dira el motivo")
                 else:
                     # no es filled ni tampoco reject, entonces es normal osea se cumplio bien
-                    self.log.info(
+                    self.logInfo(
                         f"no es filled ni tampoco reject, entonces es normal osea se cumplio bien, entonces guardo")
                     asyncio.create_task(
                         self.save_order_details(order["data"], True))
             else:
                 test = "llego respuesta de tiempo limit excedido"
-                self.log.info(f"llego respuesta de tiempo limite excedido")
+                self.logInfo(f"llego respuesta de tiempo limite excedido")
+            self.logInfo(f"saliendo de nueva_orden")
             return order
         except Exception as e:
             self.log.error(f"error en nueva_orden: {e}")
             response = {"llegoRespuesta": False}
+            self.logInfo(f"saliendo de nueva_orden")
             return response
 
     async def save_order_details(self, details, active=False):
+        self.logInfo(f"entrando a save_order_details")
         try:
             clientOrderID = details["clOrdId"]
             details["ordenBot"] = 0
@@ -824,25 +844,26 @@ class client_request():
           #  dateLog_utc = utc_tz.localize(details["transactTime"])
           #  ar_tz = pytz.timezone('America/Argentina/Buenos_Aires')
            # details["transactTime"] = dateLog_utc.astimezone(ar_tz)
-            self.log.info(f"save_order_details")
+            self.logInfo(f"save_order_details")
             if len(clientOrderID) > 8:
-                self.log.info("es ordenBot 1 xq tiene mas de 8 caracteres")
+                self.logInfo("es ordenBot 1 xq tiene mas de 8 caracteres")
                 details["ordenBot"] = 1
            # saveOrder = self.mongo.db.ordenes.insert_one(details)
             saveOrder = await self.guardar_orden_redis(details)
 
         except Exception as e:
             self.log.error(f"error guardando o actualziadno: {e}")
+        self.logInfo(f"saliendo de save_order_details")
 
     async def nueva_orden_vieja(self, symbol, side, quantity,  price, orderType, clOrdId="", ordenBot=0):
-        self.log.info(
+        self.logInfo(
             f"nueva_orden to app {symbol, side, quantity,  price, orderType}")
         try:
             # status 0=en espera 1=llego bien respeusta 2=error 3=filled
             if clOrdId == "":
                 clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             print("clOrdId", clOrdId)
-            self.log.info(f"clOrdId: {clOrdId}")
+            self.logInfo(f"clOrdId: {clOrdId}")
 
             await self.add_new_order_wait(symbol, side, quantity,  price, orderType, clOrdId, ordenBot, 0)
             await self.esperar_orden_operada()
@@ -857,7 +878,7 @@ class client_request():
     async def guardar_orden_redis(self, orden):
         from app import redis_cliente
         import uuid
-        self.log.info(f"guardar_orden_redis: {orden}")
+        self.logInfo(f"guardar_orden_redis: {orden}")
         try:
             orderUuid = uuid.uuid4()
             clave_orden = f"orden:{orderUuid}"
@@ -881,14 +902,14 @@ class client_request():
             # Ejecutar todas las operaciones como una transacción
             pipeline.execute()
 
-            self.log.info(f"orden guardada correctamente")
+            self.logInfo(f"orden guardada correctamente")
         except Exception as e: 
             self.log.error(f"error en guardar_orden_redis: {e}")
             return False
 
     async def guardar_orden_redis_vieja(self, orden):
         from app import redis_cliente
-        self.log.info(f"guardar_orden_redis: {orden}")
+        self.logInfo(f"guardar_orden_redis: {orden}")
         try:
             # Generar una clave única para la orden (puedes usar algún identificador único)
             clave_orden = f"orden:{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
@@ -905,14 +926,14 @@ class client_request():
             redis_cliente.sadd(f"active:{orden['active']}", clave_orden)
             #ordenBot
             redis_cliente.sadd(f"ordenBot:{orden['ordenBot']}", clave_orden)
-            self.log.info(f"orden guardada correctamente")
+            self.logInfo(f"orden guardada correctamente")
         except Exception as e: 
             self.log.error(f"error en guardar_orden_redis: {e}")
             return False
 
 
     async def modifyOrderFix(self, orderId, origClOrdId, side, orderType, symbol, quantity, price):
-        self.log.info(f"entrando a modifyOrderFix")
+        self.logInfo(f"entrando a modifyOrderFix")
         clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
         payload = {
             "user_fix": self.mainFix.user,
@@ -935,7 +956,7 @@ class client_request():
             print("codigo de respuesta: ", response)
             if response.status_code == 200:
                 data = response.json()
-                self.log.info(f"data :{data}")
+                self.logInfo(f"data :{data}")
                 # aqui guardar los simbolos en la variable
                 return data
             else:
@@ -948,41 +969,42 @@ class client_request():
             return {"llegoRespuesta": False}
 
     async def modificar_orden_size(self, orderId, origClOrdId, side, orderType, symbol, quantity, price, claveRedis=""):
-        self.log.info(
-            f"modify orden size to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot, claveRedis}")
+        self.logInfo(
+            f"entrando a modify orden size to app {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot, claveRedis}")
        # self.f.responseModify = None
         try:
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             order = await self.mainFix.modifyOrderFix(clOrdId, orderId, origClOrdId, side, orderType, symbol, quantity, price, self.cuenta)
-            self.log.info(
+            self.logInfo(
                 f"llego respuesta de modify size con clOrdId: {clOrdId}: {order} ")
             if order["llegoRespuesta"] == True:
-                self.log.info(
+                self.logInfo(
                     f"llego respuesta de modifyOrden, vamos a validar carias cositas")
                 if order["data"]["typeFilled"] == 1:
-                    self.log.info(
+                    self.logInfo(
                         f"es una orden filled, osea una rden q se ejecuto market, entonces no la guardo por aqui")
-                    self.log.info(f"pero si vamos a deshabilitar la vieja")
+                    self.logInfo(f"pero si vamos a deshabilitar la vieja")
                     await self.disable_order_status(claveRedis)
                 elif order["data"]["typeFilled"] == 0 and order["data"]["reject"] == 'true':
-                    self.log.info(
+                    self.logInfo(
                         f"no se modifico la orden, arriba dira el motivo")
                     test = "no se modifico la orden"
                 else:
                     # no es filled ni tampoco reject, entonces es normal osea se cumplio bien
-                    self.log.info(
+                    self.logInfo(
                         f"no es filled ni tampoco reject, entonces es normal osea se cumplio bien, entonces guardo")
-                    self.log.info(f"desactivar anterior")
+                    self.logInfo(f"desactivar anterior")
                     await self.disable_order_status(claveRedis)
                     await self.save_order_details(order["data"], True)
             response = order
         except Exception as e:
             self.log.error(f"error en modificar: {e}")
             response = {"llegoRespuesta": False}
+        self.logInfo(f"saliendo de modificar_orden_size: {response}")
         return response
 
     async def modificar_orden(self, orderId, origClOrdId, side, orderType, symbol, quantity, price):
-        self.log.info(
+        self.logInfo(
             f"entrando a modificar orden pero la que omodifica y cancela {orderId, origClOrdId, side, orderType, symbol, quantity, price, self.id_bot, self.cuenta }")
         try:
             response = await self.cancelar_orden(orderId, origClOrdId, side, quantity,
@@ -996,21 +1018,21 @@ class client_request():
         return response
 
     async def esperarRespuestaCancelar(self, clOrdId):
-        self.log.info("esperando respuesta de cancelacion")
+        self.logInfo("esperando respuesta de cancelacion")
         inicio = time.time()
         response = {}
         try:
 
             while True:
                 if self.fix.responseCancel[clOrdId]["status"] > 0:
-                    self.log.info("llego respuesta de cancelacion")
+                    self.logInfo("llego respuesta de cancelacion")
                     response = self.fix.responseCancel[clOrdId]
                     del self.fix.responseCancel[clOrdId]
                     break
                 fin = time.time()
                 tiempoEsperado = fin-inicio
                 if tiempoEsperado > self.TiempoExcedido:
-                    self.log.info("tiempo excedido de cancelacion")
+                    self.logInfo("tiempo excedido de cancelacion")
                     response = {
                         "status": 0, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
@@ -1021,9 +1043,9 @@ class client_request():
     async def cancelar_orden_rest(self, orderID, OrigClOrdID, side, quantity, symbol):
         try:
             cancel_order = pyRofex.cancel_order(OrigClOrdID)
-            self.log.info(f"cancel_order {cancel_order}")
+            self.logInfo(f"cancel_order {cancel_order}")
             if cancel_order["status"] == "OK":
-                self.log.info(f"se cancelo la orden, ahora actualizar DB")
+                self.logInfo(f"se cancelo la orden, ahora actualizar DB")
                 cancelarOrdenDb = await self.update_orden_vieja_db(2, orderID, OrigClOrdID)
                 response = {"status": 1, "msg": "se cancelo la orden"}
             else:
@@ -1035,7 +1057,7 @@ class client_request():
 
     async def cancelar_orden_manual(self, orderID, OrigClOrdID, side, quantity, symbol):
         try:
-            self.log.info(
+            self.logInfo(
                 f"cancelar orden to app {orderID, OrigClOrdID, side, quantity, symbol, self.id_bot}")
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             self.fix.responseCancel[clOrdId] = {
@@ -1063,11 +1085,11 @@ class client_request():
             ))
         except Exception as e:
             test = " error"
-            self.log.info(f"error consultando intradia : {e}")
+            self.logInfo(f"error consultando intradia : {e}")
         return arrayIntradia
 
     async def cancelOrderFix(self, origClOrdId, side, quantity, symbol, cuenta):
-        self.log.info(f"entrando a cancelOrderFix")
+        self.logInfo(f"entrando a cancelOrderFix")
         clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
         payload = {
             "user_fix": self.mainFix.user,
@@ -1087,7 +1109,7 @@ class client_request():
             print("codigo de respuesta: ", response)
             if response.status_code == 200:
                 data = response.json()
-                self.log.info(f"data :{data}")
+                self.logInfo(f"data :{data}")
                 # aqui guardar los simbolos en la variable
                 return data
             else:
@@ -1100,31 +1122,32 @@ class client_request():
             return {"llegoRespuesta": False}
 
     async def cancelar_orden(self, orderID, OrigClOrdID, side, quantity, symbol, claveRedis=""):
-        self.log.info(
-            f"cancelar orden to app {orderID, OrigClOrdID, side, quantity, symbol, self.id_bot, self.cuenta}")
+        self.logInfo(
+            f"entrando a cancelar orden to app {orderID, OrigClOrdID, side, quantity, symbol, self.id_bot, self.cuenta}")
         try:
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
             order = await self.mainFix.cancelOrderFix(clOrdId, OrigClOrdID, side, quantity, symbol, self.cuenta)
-            self.log.info(
+            self.logInfo(
                 f"llego respuesta de order cancel con clOrdId: {clOrdId}, order: {order}")
             if order["llegoRespuesta"] == True:
-                self.log.info(
+                self.logInfo(
                     f"llego respuesta de cancelOrder, vamos a validar carias cositas")
                 if order["data"]["reject"] == 'true':
-                    self.log.info(
+                    self.logInfo(
                         f"no se cancelo la orden, arriba dira el motivo")
                     test = "no se cancelo la orden"
                 else:
                     # no es reject, entonces es normal osea se cumplio bien
-                    self.log.info(
+                    self.logInfo(
                         f"no es reject, entonces es normal osea se cumplio bien, entonces guardo")
-                    self.log.info(f"desactivar anterior")
+                    self.logInfo(f"desactivar anterior")
                     await self.disable_order_status_by_orderId(orderID, OrigClOrdID)
                     await self.save_order_details(order["data"], False)
             response = order
         except Exception as e:
             response = {"llegoRespuesta": False}
             self.log.error(f"error cancelando orden: {e}")
+        self.logInfo(f"saliendo de cancelar_orden: {response}")
         return response
     
     #orderId, clOrdId
@@ -1132,7 +1155,7 @@ class client_request():
     async def disable_order_status_by_orderId(self, orderId, clOrdId):
         from app import redis_cliente as redis_client
         try:
-            self.log.info(
+            self.logInfo(
                 f"entrando a disable_order_status_by_orderId: {orderId, clOrdId}")
             claves = [
             f"orderId:{orderId}",
@@ -1142,23 +1165,24 @@ class client_request():
             # Usar SINTER para obtener la intersección directamente
             claves_interseccion = redis_client.sinter(*claves)
             for clave in claves_interseccion:
-                self.log.info(f"cambiando status de orden: {clave}")
+                self.logInfo(f"cambiando status de orden: {clave}")
                 orden = {"active": "False"}
                 redis_client.hset(clave, mapping=orden)
                 #tambien quiero quitar el set 
                 redis_client.srem(f"active:True", clave)
                 #y añadir el set de active false
                 redis_client.sadd(f"active:False", clave)
+            self.logInfo("saliendo de disable_order_status_by_orderId")
             return True
         except Exception as e:
             self.log.error(
-                f"error en disable order status orden redis: {claveRedis}, error: {e}")
+                f"error en disable order status orden redis:, error: {e}")
             return False
     
     async def disable_order_status(self, claveRedis):
         from app import redis_cliente as redis_client
         try:
-            self.log.info(
+            self.logInfo(
                 f"entrando a disable order status con redis: {claveRedis}")
             orden = {"active": "False"}
             redis_client.hset(claveRedis, mapping=orden)
@@ -1175,7 +1199,7 @@ class client_request():
 
     async def disable_order_status_vieja(self, orderId, clOrdId):
         try:
-            self.log.info(
+            self.logInfo(
                 f"entrando a disable order status: {orderId}, {clOrdId}")
             self.mongo.db.ordenes.update_one({
                 "clOrdId": clOrdId,
@@ -1191,7 +1215,7 @@ class client_request():
             return False
 
     async def cancelar_orden_vieja(self, orderID, OrigClOrdID, side, quantity, symbol):
-        self.log.info(
+        self.logInfo(
             f"cancelar orden to app {orderID, OrigClOrdID, side, quantity, symbol, self.id_bot, self.cuenta}")
         try:
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
@@ -1202,7 +1226,7 @@ class client_request():
             response = await self.esperarRespuesta(clOrdId)
             if response["status"] == 1:
                 # borrar vieja
-                self.log.info(f"borrar orden vieja ")
+                self.logInfo(f"borrar orden vieja ")
                 ordenVieja = await self.eliminar_orden_vieja(orderID, OrigClOrdID)
         except Exception as e:
             response = {"status": False}
@@ -1214,7 +1238,7 @@ class client_request():
 
     async def cancelar_orden_haberla(self, futuro, side):
         from app import redis_cliente as redis_client
-        self.log.info(f"cancelar orden haberla {futuro, side}")
+        self.logInfo(f"cancelar orden haberla {futuro, side}")
         response = {"status": False}
         try:
             clave_symbol = f"symbol:{futuro}"
@@ -1248,7 +1272,7 @@ class client_request():
             for clave in claves_interseccion:
                 orden = redis_client.hgetall(clave)
                 orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
-                self.log.info(f"orden_decodificada: {orden_decodificada}")
+                self.logInfo(f"orden_decodificada: {orden_decodificada}")
                 #convertir campos a float
                 orden_decodificada["price"] = float(orden_decodificada["price"])
                 orden_decodificada["leavesQty"] = int(float(orden_decodificada["leavesQty"])) 
@@ -1261,14 +1285,14 @@ class client_request():
             if len(detalles_ordenes) > 0:
                 xa = detalles_ordenes[0]
                 cancelarOrden = await self.cancelar_orden(orderID=xa["orderId"], OrigClOrdID=xa["clOrdId"], side=side, quantity=xa["orderQty"], symbol=futuro)
-                self.log.info(f"cancelar orden haberla {cancelarOrden}")
+                self.logInfo(f"cancelar orden haberla {cancelarOrden}")
                 response = {"status": True, "response": cancelarOrden}
         except Exception as e:
             self.log.error(f"error en cancelar_orden_haberla: {e}")
         return response
 
     async def cancelar_orden_haberla_vieja(self, futuro, side):
-        self.log.info(f"cancelar orden haberla {futuro, side}")
+        self.logInfo(f"cancelar orden haberla {futuro, side}")
         response = {"status": False}
         try:
             sideDb = "Buy"
@@ -1284,16 +1308,16 @@ class client_request():
                 "active": True
             }, {"_id": 0})
             if xa:
-                self.log.info(f"cancelar orden haberla {xa}")
+                self.logInfo(f"cancelar orden haberla {xa}")
                 cancelarOrden = await self.cancelar_orden(orderID=xa["orderId"], OrigClOrdID=xa["clOrdId"], side=side, quantity=xa["orderQty"], symbol=futuro)
-                self.log.info(f"cancelar orden haberla {cancelarOrden}")
+                self.logInfo(f"cancelar orden haberla {cancelarOrden}")
                 response = {"status": True, "response": cancelarOrden}
         except Exception as e:
             self.log.error(f"error en cancelar_orden_haberla: {e}")
         return response
 
     async def nueva_orden_rest(self, symbol, side, quantity,  price, orderType):
-        self.log.info(
+        self.logInfo(
             f"nueva_orden_rest to app {symbol, side, quantity,  price, orderType}")
         sideRest = pyRofex.Side.BUY
         if side == 2:
@@ -1302,26 +1326,26 @@ class client_request():
         try:
             order = pyRofex.send_order(ticker=symbol,  side=sideRest, size=quantity,
                                        price=price,    order_type=pyRofex.OrderType.LIMIT,)
-            self.log.info(f"nueva_orden_rest to app {order}")
+            self.logInfo(f"nueva_orden_rest to app {order}")
             response = {"status": 0, "msg": "en espera de respuesta"}
             if order["status"] == "OK":
-                self.log.info(
+                self.logInfo(
                     f"se creo la orden, ahora consultar status para guardar en db")
                 statusOrder = pyRofex.get_order_status(
                     order["order"]["clientId"])
-                self.log.info(f"statusOrder {statusOrder}")
+                self.logInfo(f"statusOrder {statusOrder}")
                 if statusOrder["status"] == "OK":
                     response = {"status": 1, "msg": "se creo la orden",
                                 "order": statusOrder["order"]}
-                    self.log.info(f"status ok continuamos")
+                    self.logInfo(f"status ok continuamos")
                     if statusOrder["order"]["status"] == "FILLED":
-                        self.log.info(f"status filled")
+                        self.logInfo(f"status filled")
                         guardarNew = await self.guardar_orden_nueva_in_db(statusOrder["order"], 3, 0)
                     elif statusOrder["order"]["status"] == "NEW":
-                        self.log.info(f"status new")
+                        self.logInfo(f"status new")
                         guardarNew = await self.guardar_orden_nueva_in_db(statusOrder["order"], 0, 0)
                     elif statusOrder["order"]["status"] == "REJECTED":
-                        self.log.info(f"status rejected")
+                        self.logInfo(f"status rejected")
                         guardarNew = await self.guardar_orden_nueva_in_db(statusOrder["order"], 2, 0)
             else:
                 response = {"status": 2, "msg": "no se pudo crear la orden"}
@@ -1332,7 +1356,7 @@ class client_request():
 
     async def mass_cancel_request(self, marketSegment):
         try:
-            self.log.info(f"mass_cancel_request to app")
+            self.logInfo(f"mass_cancel_request to app")
             self.fix.orderMassCancelRequest(marketSegment=marketSegment)
             time.sleep(5)
             return {"status": True}
@@ -1344,7 +1368,7 @@ class client_request():
         try:
             self.fix.massStatusArray = []
             self.fix.massStatusArrayReal = []
-            self.log.info(
+            self.logInfo(
                 f"mass_status_request to app {securityStatus, MassStatusReqType}")
             self.fix.orderMassStatusRequest(
                 securityStatus, MassStatusReqType, account)
@@ -1358,18 +1382,18 @@ class client_request():
     async def esperarRespuestaMassStatus(self):
         response = {"status": False}
         try:
-            self.log.info(f"esperarRespuestaMassStatus")
+            self.logInfo(f"esperarRespuestaMassStatus")
             inicio = time.time()
 
             while True:
                 if self.fix.responseMassStatus != None:
-                    self.log.info("llego respuesta de mass status")
+                    self.logInfo("llego respuesta de mass status")
                     response = self.fix.responseMassStatus
                     break
                 fin = time.time()
                 tiempoEsperado = fin-inicio
                 if len(self.fix.massStatusArray) == 0 and tiempoEsperado > 3:
-                    self.log.info("tiempo excedido de mass status ")
+                    self.logInfo("tiempo excedido de mass status ")
                     response = {
                         "status": False, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
@@ -1378,7 +1402,7 @@ class client_request():
         return response
 
     async def nueva_orden_manual(self, symbol, side, quantity,  price, orderType):
-        self.log.info(
+        self.logInfo(
             f"nueva_orden manual to app {symbol, side, quantity,  price, orderType}")
         try:
             clOrdId = await self.getNextOrderID(self.cuenta, self.id_bot)
@@ -1396,7 +1420,7 @@ class client_request():
         return response
 
     async def get_order_pendiente_by_clOrdId(self, clOrdId):
-        self.log.info(f"get_order_pendiente_by_clOrdId")
+        self.logInfo(f"get_order_pendiente_by_clOrdId")
         try:
             x = self.mongo.db.ordenes.find_one({
                 "clOrdId": clOrdId,
@@ -1404,10 +1428,10 @@ class client_request():
                 "id_bot": self.id_bot,
                 "cuenta": self.cuenta
             }, {"_id": 0})
-            self.log.info(f"get_order_pendiente_by_clOrdId {clOrdId}")
+            self.logInfo(f"get_order_pendiente_by_clOrdId {clOrdId}")
             if x:
-                self.log.info("si existe la orden")
-                self.log.info(f"la orden es esta: {x}")
+                self.logInfo("si existe la orden")
+                self.logInfo(f"la orden es esta: {x}")
                 return {"status": True, "data": x}
             else:
                 return {"status": False, "msg": "no hay orden limit con esos parametros"}
@@ -1416,7 +1440,7 @@ class client_request():
             return {"status": False}
 
     async def guardar_orden_nueva_in_db(self, orden, statusOrder, ordenBot):
-        self.log.info(
+        self.logInfo(
             f"guardar orden nueva in db {orden, statusOrder, ordenBot, self.id_bot}")
 
         ordenGuardar = orden
@@ -1426,17 +1450,21 @@ class client_request():
         try:
             ordenNew = self.mongo.db.ordenes.insert_one(ordenGuardar)
             if ordenNew.acknowledged:
-                self.log.info(f"se guardo la orden nueva {ordenNew}")
+                self.logInfo(f"se guardo la orden nueva {ordenNew}")
                 return {"status": True, "id": str(ordenNew.inserted_id)}
             else:
-                self.log.info(f"no se guardo la orden nueva {ordenNew}")
-                self.log.info("no se guardo la orden ")
+                self.logInfo(f"no se guardo la orden nueva {ordenNew}")
+                self.logInfo("no se guardo la orden ")
                 return {"status": False}
         except Exception as e:
             self.log.error(f"error al guardar la nueva orden: {e}")
             return {"status": False}
 
     async def verificar_ordenes_futuro(self, futuro, side, book):
+        self.logInfo(f"verificar_ordenes_futuro: {futuro, side, book}")
+        if not self.botActual.paused.is_set():
+            self.logWarning(f"paused esta activo")
+            return
         # con esto voy a saber si puedo operar en este futuro, para eso necesito el valor del primero del book
         # o el valor que puedo usar que no sea mi propia orden
         # si la posicion 0 del book no es mia , entonces necesito eso, por lo tanto guardo indice y retorno True
@@ -1462,34 +1490,32 @@ class client_request():
             "primeraOrden": False,
             "puedoOperar": False,
         }
-        self.log.info(
-            f"Verificando órdenes en futuro {futuro} con side {side}")
         try:
             if not book:
-                self.log.info(
+                self.logInfo(
                     "No hay órdenes en este futuro, retornando False")
                 return response
             ordenes_book = book
             ordenesMias = 0
 
             for i in range(len(ordenes_book)):
-                self.log.info(
+                self.logInfo(
                     f"i={i}, verificar si : {ordenes_book[i]}, es ,mia")
                 mia = await self.es_orden_mia(ordenes_book[i], futuro, side)
                 if mia["status"] == True:
                     if i == 0:
                         response["primeraOrden"] = True
                         break
-                    self.log.info(f"es mia")
+                    self.logInfo(f"es mia")
                  #   if mia["orden"] == 1:
-                  #      self.log.info(f"es mia y es ordenBot pegada")
+                  #      self.logInfo(f"es mia y es ordenBot pegada")
                   #      ordenesMias += 1
                  #   else:
-                  #      self.log.info(f"es mia y es orden limit normal")
+                  #      self.logInfo(f"es mia y es orden limit normal")
                    #     ordenesMias += 1
                 else:
-                    self.log.info(f"no es mia, guardando indice")
-                    self.log.info(
+                    self.logInfo(f"no es mia, guardando indice")
+                    self.logInfo(
                         f"Guardando índice para futuro {futuro} y side {side}, indice: {i}")
                     response["puedoOperar"] = True
                     response["indiceBookUsar"] = i
@@ -1497,7 +1523,7 @@ class client_request():
 
         except Exception as e:
             self.log.error(f"error en verificar_ordenes_futuro: {e}")
-
+        self.logInfo(f"saliendo de verificar_ordenes_futuro")
         return response
 
 # -------------operada ------------------#
@@ -1516,10 +1542,12 @@ class client_request():
             return None
 
     async def get_tick_value(self, symbol):
+        self.log.info("entrando a get_tick_value")
         try:
             symbol = str(symbol).replace(" ", "")
             symbol = symbol.split("-")
             symbolOnly = symbol[2]
+            self.logInfo("saliendo de get_tick_value")
             return self.ticks[symbolOnly]
         except Exception as e:
             self.log.error(f"error en tick: {e}")
@@ -1528,7 +1556,7 @@ class client_request():
 
     async def actualizar_order_by_change(self, orderID, ordenNueva, ordenBot=0):
         time.sleep(1)
-        self.log.info(f"actualizar_order_by_change: {ordenNueva}")
+        self.logInfo(f"actualizar_order_by_change: {ordenNueva}")
         try:
             # entonces si llega una filled
             # cmparo con lastqty y verifico si la cantidad es la misma entonces la paso la padre a filled completa
@@ -1550,16 +1578,16 @@ class client_request():
                 newOrder = await self.guardar_orden_nueva_in_db(ordenNueva, 1, orderBot)
                 if leavesQtyNueva == 0:
                     del self.fix.OrdersIds[ordenNueva["clOrdId"]]
-                    self.log.info("la orden se ejecuto en su totalidad  ")
+                    self.logInfo("la orden se ejecuto en su totalidad  ")
                     ordenVieja = await self.eliminar_orden_vieja(orderID, orderVieja["clOrdId"])
-                    self.log.info(
+                    self.logInfo(
                         "guardamos orden nueva como filled y vieja borrada")
                 else:
                     # actualizar size orden vieja
                     ordenVieja = await self.update_size_orden_vieja(orderVieja["_id"], ordenNueva)
 
             else:
-                self.log.info(
+                self.logInfo(
                     "es una orden nueva q se ejecuto market guardar como nueva ")
                 if leavesQtyNueva == 0:
                     del self.fix.OrdersIds[ordenNueva["clOrdId"]]
