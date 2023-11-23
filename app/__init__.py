@@ -21,5 +21,6 @@ sesionesFix = {}
 fixM = fixManager()
 urlAppFix = "http://127.0.0.1:5000"
 redis_cliente = redis.StrictRedis(host='localhost', port=6379, db=0)
+useLogs = True
 from app.requests import *
 

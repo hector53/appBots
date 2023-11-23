@@ -6,7 +6,8 @@ import asyncio
 import os
 import json
 from app.clases.botManager import botManager
-log = logging.getLogger(__name__)
+from app.clases.class_logs import logsMain
+log = logsMain("utilsController")
 
 
 class UtilsController:
@@ -16,11 +17,11 @@ class UtilsController:
         # en este punto sabemos que la sesion fix esta iniciada y todo bien
         # ahora tenemos que entrar al bot manager y iniciar este bot como tarea
 
-        log.info(
+        log.logInfo(
             f"id_fix : {id_fix}, id_bot: {id_bot}, symbols: {symbols}, opciones: {opciones}")
-        log.info(
+        log.logInfo(
             f"minRate: {opciones['minRate']}, maxRate: {opciones['maxRate']}, sizeMax: {opciones['sizeMax']}")
-        log.info(f"symbols: {symbols[0]}, {symbols[1]}")
+        log.logInfo(f"symbols: {symbols[0]}, {symbols[1]}")
         response = {"status": False}
         try:
             bot_bb = botBB(symbols[0], symbols[1], float(opciones["minRate"]), float(
@@ -36,14 +37,14 @@ class UtilsController:
             bot_bb.botData["ruedaB"]["sizeDisponible"] = int(
                 opciones["sizeMax"])
             # agregar con el bot manager
-            log.info(f"botM: {botM}")
-            log.info(f"voy a iniciar la tarea en el botManager")
+            log.logInfo(f"botM: {botM}")
+            log.logInfo(f"voy a iniciar la tarea en el botManager")
             taskBotManager = await botM.add_task(bot_bb)
             # response = UtilsController.esperar_bot_iniciado(id_fix, id_bot, cuenta)
             # await asyncio.sleep(4)
          #   if response["status"]==True:
             await asyncio.sleep(4)
-            log.info("el bot ha sido iniciado")
+            log.logInfo("el bot ha sido iniciado")
             # actualizar el status del bot
             status = 1
             if soloEscucharMercado == True:
@@ -53,18 +54,18 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.info(f"error: {str(e)}")
+            log.logInfo(f"error: {str(e)}")
         return response
 
     async def iniciar_bot_ci_48(botM: botManager, id_fix, id_bot, cuenta, symbols, opciones, soloEscucharMercado, fix):
         from app.clases.botManager.bots.bot_ci_48 import botCi48
         # en este punto sabemos que la sesion fix esta iniciada y todo bien
         # ahora tenemos que entrar al bot manager y iniciar este bot como tarea
-        log.info(
+        log.logInfo(
             f"id_fix : {id_fix}, id_bot: {id_bot}, symbols: {symbols}, opciones: {opciones}")
-        log.info(
+        log.logInfo(
             f"minRate: {opciones['minRate']}, maxRate: {opciones['maxRate']}, sizeMax: {opciones['sizeMax']}")
-        log.info(f"symbols: {symbols[0]}, {symbols[1]}")
+        log.logInfo(f"symbols: {symbols[0]}, {symbols[1]}")
         response = {"status": False}
         try:
             bot_bb = botCi48(symbols[0], symbols[1], float(opciones["minRate"]), float(
@@ -79,14 +80,14 @@ class UtilsController:
             bot_bb.botData["ruedaB"]["sizeDisponible"] = int(
                 opciones["sizeMax"])
             # agregar con el bot manager
-            log.info(f"botM: {botM}")
-            log.info(f"voy a iniciar la tarea en el botManager")
+            log.logInfo(f"botM: {botM}")
+            log.logInfo(f"voy a iniciar la tarea en el botManager")
             taskBotManager = await botM.add_task(bot_bb)
             # response = UtilsController.esperar_bot_iniciado(id_fix, id_bot, cuenta)
             # await asyncio.sleep(4)
          #   if response["status"]==True:
             await asyncio.sleep(4)
-            log.info("el bot ha sido iniciado")
+            log.logInfo("el bot ha sido iniciado")
             # actualizar el status del bot
             status = 1
             if soloEscucharMercado == True:
@@ -96,7 +97,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.info(f"error: {str(e)}")
+            log.logInfo(f"error: {str(e)}")
         return response
 
     async def iniciar_bot_ci_ci(botM: botManager, id_fix, id_bot, cuenta, symbols, opciones, soloEscucharMercado, fix):
@@ -104,11 +105,11 @@ class UtilsController:
         # en este punto sabemos que la sesion fix esta iniciada y todo bien
         # ahora tenemos que entrar al bot manager y iniciar este bot como tarea
 
-        log.info(
+        log.logInfo(
             f"id_fix : {id_fix}, id_bot: {id_bot}, symbols: {symbols}, opciones: {opciones}")
-        log.info(
+        log.logInfo(
             f"minRate: {opciones['minRate']}, maxRate: {opciones['maxRate']}, sizeMax: {opciones['sizeMax']}")
-        log.info(f"symbols: {symbols[0]}, {symbols[1]}")
+        log.logInfo(f"symbols: {symbols[0]}, {symbols[1]}")
         response = {"status": False}
         try:
             bot = botCiCi(symbols[0], symbols[1], float(opciones["minRate"]), float(
@@ -125,14 +126,14 @@ class UtilsController:
             bot.botData["ruedaB"]["sizeDisponible"] = int(
                 opciones["sizeMax"])
             # agregar con el bot manager
-            log.info(f"botM: {botM}")
-            log.info(f"voy a iniciar la tarea en el botManager")
+            log.logInfo(f"botM: {botM}")
+            log.logInfo(f"voy a iniciar la tarea en el botManager")
             taskBotManager = await botM.add_task(bot)
             # response = UtilsController.esperar_bot_iniciado(id_fix, id_bot, cuenta)
             # await asyncio.sleep(4)
          #   if response["status"]==True:
             await asyncio.sleep(4)
-            log.info("el bot ha sido iniciado")
+            log.logInfo("el bot ha sido iniciado")
             # actualizar el status del bot
             status = 1
             if soloEscucharMercado == True:
@@ -142,7 +143,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.info(f"error: {str(e)}")
+            log.logInfo(f"error: {str(e)}")
         return response
 
     async def iniciar_bot_triangulo(botM: botManager, id_fix, id_bot, cuenta, symbols, opciones, soloEscucharMercado, fix):
@@ -150,7 +151,7 @@ class UtilsController:
         # en este punto sabemos que la sesion fix esta iniciada y todo bien
         # ahora tenemos que entrar al bot manager y iniciar este bot como tarea
 
-        log.info(
+        log.logInfo(
             f"id_fix : {id_fix}, id_bot: {id_bot}, symbols: {symbols}, opciones: {opciones}")
 
         response = {"status": False}
@@ -165,14 +166,14 @@ class UtilsController:
             bot.botData["ruedaB"]["sizeDisponible"] = int(
                 opciones["sizeMax"])
             # agregar con el bot manager
-            log.info(f"botM: {botM}")
-            log.info(f"voy a iniciar la tarea en el botManager")
+            log.logInfo(f"botM: {botM}")
+            log.logInfo(f"voy a iniciar la tarea en el botManager")
             taskBotManager = await botM.add_task(bot)
             # response = UtilsController.esperar_bot_iniciado(id_fix, id_bot, cuenta)
             # await asyncio.sleep(4)
          #   if response["status"]==True:
             await asyncio.sleep(4)
-            log.info("el bot ha sido iniciado")
+            log.logInfo("el bot ha sido iniciado")
             # actualizar el status del bot
             status = 1
             if soloEscucharMercado == True:
@@ -182,7 +183,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.info(f"error: {str(e)}")
+            log.logInfo(f"error: {str(e)}")
         return response
 
     def esperar_bot_iniciado(id_fix, id_bot, cuenta):
@@ -209,21 +210,21 @@ class UtilsController:
 
     async def detener_bot_by_id_viejo(fix, id_bot):
         from app import fixM
-        log.info(f"entrando a detener bot byid: {id_bot} ")
+        log.logInfo(f"entrando a detener bot byid: {id_bot} ")
         response = {"status": False}
         id_fix = fix["user"]
         cuenta = fix["account"]
-        log.info(f"fixM: {fixM}")
+        log.logInfo(f"fixM: {fixM}")
         getFixTask = await fixM.get_fixTask_by_id_user(id_fix)
         if getFixTask:
-            log.info(f"si existe a session: {id_fix}")
+            log.logInfo(f"si existe a session: {id_fix}")
             try:
 
                 if id_bot in getFixTask.botManager.main_tasks:
-                    log.info(f"borrar ordenes del bot")
-                    log.info(f"si existe a bot: {id_bot}")
+                    log.logInfo(f"borrar ordenes del bot")
+                    log.logInfo(f"si existe a bot: {id_bot}")
                     # buscar en db las ordenes de este bot y cancelarlas
-                    log.info("pausar y detener cola del bot")
+                    log.logInfo("pausar y detener cola del bot")
                     await getFixTask.botManager.main_tasks[id_bot].pause()
                     await getFixTask.botManager.main_tasks[id_bot].detenerBot()
                     ordenes = mongo.db.ordenes.find(
@@ -231,12 +232,12 @@ class UtilsController:
 
                     if ordenes:
                         ordenesBorrar = list(ordenes)
-                        log.info(f"ordenes: {ordenesBorrar}")
-                        log.info(f"hay {len(ordenesBorrar)} ordenes")
+                        log.logInfo(f"ordenes: {ordenesBorrar}")
+                        log.logInfo(f"hay {len(ordenesBorrar)} ordenes")
                         contadorOrdenesCanceladas = 0
                         tasks = []
                         for x in ordenesBorrar:
-                            log.info(f"borrar orden: {x}")
+                            log.logInfo(f"borrar orden: {x}")
                             task = asyncio.create_task(UtilsController.cancelar_orden_async(
                                 id_fix, id_bot, x["orderId"], x["clOrdId"], x["side"], x["leavesQty"], x["symbol"], cuenta))
                             tasks.append(task)
@@ -244,39 +245,39 @@ class UtilsController:
                     #ahora quitar la suscripcion a mercado
                     #necesito los simbolos del bot 
                     symbolsBot = getFixTask.botManager.main_tasks[id_bot].botData["symbols2"]
-                    log.info(f"symbolsBot: {symbolsBot}")
+                    log.logInfo(f"symbolsBot: {symbolsBot}")
                     symbolsToUnsus = []
                     #ahora verificar si existe en mainFIx en la variable de la suscripcion
-                    log.info(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
+                    log.logInfo(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
                     for symbol in symbolsBot:
                         if symbol in getFixTask.marketSymbolsSubs:
                             #si existe entonces remover el id del bot 
                             getFixTask.marketSymbolsSubs[symbol].remove(id_bot)
                             if len(getFixTask.marketSymbolsSubs[symbol])==0: 
                                 symbolsToUnsus.append(symbol)
-                    log.info(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
+                    log.logInfo(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
 
                     if len(symbolsToUnsus)>0:
                         #enviar a unsuscribir los simbolos 
                         asyncio.create_task(getFixTask.botManager.main_tasks[id_bot].clientR.suscribir_mercado_off(symbolsToUnsus)) 
                     await getFixTask.botManager.stop_task_by_id(id_bot)
-                    log.info(
+                    log.logInfo(
                         f"botManager Yasks: {getFixTask.botManager.tasks}")
                 await DbUtils.update_status_bot_ejecuntadose(id_bot, 0)
-                log.info(f"fixM: {fixM}")
+                log.logInfo(f"fixM: {fixM}")
                 response = {"status": True}
             except Exception as e:
-                log.info(
+                log.logInfo(
                     f"error en: {e}")
                 response = {"status": False}
         else:
-            log.info(f"no existe la session")
+            log.logInfo(f"no existe la session")
             response = {"status": True}
         return response
 
     async def get_ordenes_by_id_bot(id_bot, cuenta):
         from app import redis_cliente as redis_client
-        log.info(f"entrando a get_ordenes_by_id_bot { id_bot, cuenta}")
+        log.logInfo(f"entrando a get_ordenes_by_id_bot { id_bot, cuenta}")
         detalles_ordenes = []
         claves = [
                 f"id_bot:{id_bot}",
@@ -285,7 +286,7 @@ class UtilsController:
             ]
         claves_interseccion = redis_client.sinter(*claves)
         for clave in claves_interseccion:
-            log.info(f"clave: {clave}")
+            log.logInfo(f"clave: {clave}")
             orden = redis_client.hgetall(clave)
             orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
             orden_decodificada["price"] = float(orden_decodificada["price"])
@@ -300,33 +301,33 @@ class UtilsController:
 
     async def detener_bot_by_id(fix, id_bot):
         from app import fixM
-        log.info(f"entrando a detener bot byid: {id_bot} ")
+        log.logInfo(f"entrando a detener bot byid: {id_bot} ")
         response = {"status": False}
         id_fix = fix["user"]
         cuenta = fix["account"]
-        log.info(f"fixM: {fixM}")
+        log.logInfo(f"fixM: {fixM}")
         getFixTask = await fixM.get_fixTask_by_id_user(id_fix)
         if getFixTask:
-            log.info(f"si existe a session: {id_fix}")
+            log.logInfo(f"si existe a session: {id_fix}")
             try:
 
                 if id_bot in getFixTask.botManager.main_tasks:
-                    log.info(f"borrar ordenes del bot")
-                    log.info(f"si existe a bot: {id_bot}")
+                    log.logInfo(f"borrar ordenes del bot")
+                    log.logInfo(f"si existe a bot: {id_bot}")
                     # buscar en db las ordenes de este bot y cancelarlas
-                    log.info("pausar y detener cola del bot")
+                    log.logInfo("pausar y detener cola del bot")
                     await getFixTask.botManager.main_tasks[id_bot].pause()
                     await getFixTask.botManager.main_tasks[id_bot].detenerBot()
                     ordenes = await UtilsController.get_ordenes_by_id_bot(id_bot, cuenta)
-                    log.info(f"ordenes: {ordenes}")
+                    log.logInfo(f"ordenes: {ordenes}")
                     if ordenes:
                         ordenesBorrar = ordenes
-                        log.info(f"ordenes: {ordenesBorrar}")
-                        log.info(f"hay {len(ordenesBorrar)} ordenes")
+                        log.logInfo(f"ordenes: {ordenesBorrar}")
+                        log.logInfo(f"hay {len(ordenesBorrar)} ordenes")
                         contadorOrdenesCanceladas = 0
                         tasks = []
                         for x in ordenesBorrar:
-                            log.info(f"borrar orden: {x}")
+                            log.logInfo(f"borrar orden: {x}")
                             task = asyncio.create_task(UtilsController.cancelar_orden_async(
                                 id_fix, id_bot, x["orderId"], x["clOrdId"], x["side"], x["leavesQty"], x["symbol"], cuenta))
                             tasks.append(task)
@@ -334,33 +335,33 @@ class UtilsController:
                     #ahora quitar la suscripcion a mercado
                     #necesito los simbolos del bot 
                     symbolsBot = getFixTask.botManager.main_tasks[id_bot].botData["symbols2"]
-                    log.info(f"symbolsBot: {symbolsBot}")
+                    log.logInfo(f"symbolsBot: {symbolsBot}")
                     symbolsToUnsus = []
                     #ahora verificar si existe en mainFIx en la variable de la suscripcion
-                    log.info(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
+                    log.logInfo(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
                     for symbol in symbolsBot:
                         if symbol in getFixTask.marketSymbolsSubs:
                             #si existe entonces remover el id del bot 
                             getFixTask.marketSymbolsSubs[symbol].remove(id_bot)
                             if len(getFixTask.marketSymbolsSubs[symbol])==0: 
                                 symbolsToUnsus.append(symbol)
-                    log.info(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
+                    log.logInfo(f"getFixTask.marketSymbolsSubs: {getFixTask.marketSymbolsSubs}")
 
                     if len(symbolsToUnsus)>0:
                         #enviar a unsuscribir los simbolos 
                         asyncio.create_task(getFixTask.botManager.main_tasks[id_bot].clientR.suscribir_mercado_off(symbolsToUnsus)) 
                     await getFixTask.botManager.stop_task_by_id(id_bot)
-                    log.info(
+                    log.logInfo(
                         f"botManager Yasks: {getFixTask.botManager.tasks}")
                 await DbUtils.update_status_bot_ejecuntadose(id_bot, 0)
-                log.info(f"fixM: {fixM}")
+                log.logInfo(f"fixM: {fixM}")
                 response = {"status": True}
             except Exception as e:
-                log.info(
+                log.logInfo(
                     f"error en: {e}")
                 response = {"status": False}
         else:
-            log.info(f"no existe la session")
+            log.logInfo(f"no existe la session")
             response = {"status": True}
         return response
 
@@ -482,11 +483,11 @@ class UtilsController:
         return response
 
     def get_tenencias_bot(posiciones):
-        log.info(f"entrando a get tenencias bot: {posiciones}")
+        log.logInfo(f"entrando a get tenencias bot: {posiciones}")
         arrayTenencias = []
         try:
             for x in posiciones:
-                log.info(f"tenencia: {posiciones[x]}")
+                log.logInfo(f"tenencia: {posiciones[x]}")
                 symbol = x
                 tenencia = int(posiciones[x]["BI"]) - int(posiciones[x]["OF"])
                 objTenencia = {
@@ -500,7 +501,7 @@ class UtilsController:
 
     async def cancelar_orden_async(id_fix, id_bot, orderID, OrigClOrdID, side, quantity, symbol, cuenta):
         from app import fixM
-        log.info("entrando a cancelar orden async")
+        log.logInfo("entrando a cancelar orden async")
         response = {"llegoRespuesta": False}
         try:
             sideFix = 1
@@ -520,12 +521,12 @@ class UtilsController:
 
     def fetch_securitys_data(id_fix):
         from app import fixM
-        log.info("fetch_securitys_data")
+        log.logInfo("fetch_securitys_data")
         lista = fixM.main_tasks[id_fix].application.securitysList
         arraySecuritys = []
         for x in lista:
             arraySecuritys.append(lista[x])
-        log.info(f"lista de securitys {len(arraySecuritys)} ")
+        log.logInfo(f"lista de securitys {len(arraySecuritys)} ")
         for security in arraySecuritys:
             securityDesc = security['securityDesc']
             securityDescUnicode = securityDesc.encode(
