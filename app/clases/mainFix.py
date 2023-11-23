@@ -21,7 +21,8 @@ class MainFix():
         self.message_queue = Cola()
         self.stopCola = asyncio.Event()
         self.log = logsMain("MainFix")        
-       # self.log.logInfo = logging.getLogger("MainFix")
+        
+       # self.log = logging.getLogger("MainFix")
         self.taskToCancel = None
         self.balance = {}
         self.OrdersIds = {}
@@ -45,7 +46,7 @@ class MainFix():
             self.threadCola = Thread(target=self.startCola)
             self.threadCola.start()
         finally:
-            self.log.logInfo.error("se cerro el run d ela tarea main fix")
+            self.log.logError("se cerro el run d ela tarea main fix")
 
     def startCola(self):
         loop3 = asyncio.new_event_loop()# creo un nuevo evento para asyncio y asi ejecutar todo de aqui en adelante con async await 
@@ -54,26 +55,26 @@ class MainFix():
         loop3.close()
 
     async def run_forever(self):
-        ##self.log.logInfo.info(f"estoy en el ciclo start")
+        ##self.log.logInfo(f"estoy en el ciclo start")
         try:
             while not self.stopCola.is_set():
-             #   ##self.log.logInfo.info("ciclo infinito")
+             #   ##self.log.logInfo("ciclo infinito")
                 task = await self.message_queue.obtener_tarea()
                 if task is not None:
-                    self.log.logInfo.info(f"llego tarea nueva: {task}")
+                    self.log.logInfo(f"llego tarea nueva: {task}")
                     asyncio.create_task(self.process_message(task))
                     await self.message_queue.marcar_completada(task)
                 await asyncio.sleep(0.001)
         except Exception as e:
             # Manejar la excepción adecuadamente
-            self.log.logInfo.error(f"Se ha producido una excepción: {e}")
-            self.log.logInfo.error(f"traceback: {traceback.format_exc()}")
+            self.log.logError(f"Se ha producido una excepción: {e}")
+            self.log.logError(f"traceback: {traceback.format_exc()}")
         finally: 
-            self.log.logInfo.error(f"se cerro el ciclo de cola en main task")
+            self.log.logError(f"se cerro el ciclo de cola en main task")
 
     def on_message(self, ws, message):
         timeA = datetime.datetime.now()
-        ##self.log.logInfo.info(f"mensaje del puerto: {self.port} y tiempo: {timeA} message: {message}")
+        ##self.log.logInfo(f"mensaje del puerto: {self.port} y tiempo: {timeA} message: {message}")
         encode_json = json.loads(str(message).replace("'", '"'))
         
         self.message_queue.agregar_tarea_not_await(encode_json)
@@ -88,7 +89,7 @@ class MainFix():
         print("### closed ###")
 
     async def cancelOrderFix(self, clOrdId, origClOrdId, side, quantity, symbol, cuenta):
-        ##self.log.logInfo.info(f"entrando a cancelOrderFix")
+        ##self.log.logInfo(f"entrando a cancelOrderFix")
         payload = {
             "type": 5,#cancel order
             "user_fix": self.user, 
@@ -108,7 +109,7 @@ class MainFix():
         return response
 
     async def modifyOrderFix(self,clOrdId, orderId, origClOrdId, side, orderType, symbol, quantity, price, cuenta):
-        ##self.log.logInfo.info(f"entrando a modifyOrderFix")
+        ##self.log.logInfo(f"entrando a modifyOrderFix")
         payload = {
             "type": 4,#modify order
             "user_fix": self.user, 
@@ -131,7 +132,7 @@ class MainFix():
         return response
 
     async def newOrderFix(self, clOrdId, symbol, side, quantity, price, orderType,cuenta):
-        ##self.log.logInfo.info(f"entrando a newOrderFix")
+        ##self.log.logInfo(f"entrando a newOrderFix")
         
         payload = {
             "type": 3,#new order
@@ -144,7 +145,7 @@ class MainFix():
             "orderType": orderType
         }
         self.clOrdIdEsperar[clOrdId] = {"clOrdId": clOrdId, "type": 3, "details": payload, "llegoRespuesta": False, "lastQty": 0}
-        ##self.log.logInfo.info(f"enviando nueva orden por socket")
+        ##self.log.logInfo(f"enviando nueva orden por socket")
         self.ws.send(str(payload))
 
         task = asyncio.create_task(self.esperarRespuesta(clOrdId, "newOrder"))
@@ -154,13 +155,13 @@ class MainFix():
     async def esperarRespuesta(self, clOrdId, typeOrder):
         response = {"llegoRespuesta": False}
         try:
-            ##self.log.logInfo.info(f"esperando respuesta de {typeOrder}, con el clOrdId: {clOrdId}")
+            ##self.log.logInfo(f"esperando respuesta de {typeOrder}, con el clOrdId: {clOrdId}")
             contador = 0
             contadorParcial = 0
             while True:
                 
                 if self.clOrdIdEsperar[clOrdId]["llegoRespuesta"] == True:
-                    ##self.log.logInfo.info(f"llego respuesta en esperar respuesta de: {clOrdId},  contador: {contador} contadorParcial: {contadorParcial}")
+                    ##self.log.logInfo(f"llego respuesta en esperar respuesta de: {clOrdId},  contador: {contador} contadorParcial: {contadorParcial}")
                     if contadorParcial>20:
                         response = self.clOrdIdEsperar[clOrdId]
                         del self.clOrdIdEsperar[clOrdId]
@@ -168,13 +169,13 @@ class MainFix():
                     contadorParcial+=1
                 contador+=1
                 if contador > 1000:
-                    ##self.log.logInfo.info(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
+                    ##self.log.logInfo(f"tiempo excedido esperando respuesta para: {typeOrder}, con el clOrdId: {clOrdId} ")
                     response = {
                         "llegoRespuesta": False, "msg": "tiempo excedido, no llego respuesta o algo mas paso"}
                     break
                 await asyncio.sleep(0.01)
         except Exception as e:
-            self.log.logInfo.error(f"error en esperarRespuesta: {e}")
+            self.log.logError(f"error en esperarRespuesta: {e}")
         return response
 
     def on_open(self, ws):
@@ -183,7 +184,7 @@ class MainFix():
         print("mensaje enviado ")
 
     async def procesar_orden_filled(self, task):
-        self.log.logInfo.info(f"procesando task orden filled {task}")
+        self.log.logInfo(f"procesando task orden filled {task}")
         clientOrderID = task["details"]["clOrdId"]
         if clientOrderID in self.clOrdIdEsperar:
             self.clOrdIdEsperar[clientOrderID]["llegoRespuesta"] = True
@@ -197,32 +198,32 @@ class MainFix():
             id_bot = self.OrdersIds[clientOrderID]["id_bot"]
             lastOrderID = self.OrdersIds[clientOrderID]["lastOrderID"]
             if typeOrder == "N":
-                self.log.logInfo.info(f"pausar cola del bot :{self.botManager.main_tasks[id_bot].paused}")
-                ##self.log.logInfo.info(f"contadorOperada: {self.botManager.main_tasks[id_bot].contadorOperada}")
+                self.log.logInfo(f"pausar cola del bot :{self.botManager.main_tasks[id_bot].paused}")
+                ##self.log.logInfo(f"contadorOperada: {self.botManager.main_tasks[id_bot].contadorOperada}")
                 if self.botManager.main_tasks[id_bot].contadorOperada == 0:
-                    ##self.log.logInfo.info(f"contador = 0, pongo pausa")
+                    ##self.log.logInfo(f"contador = 0, pongo pausa")
                     await self.botManager.main_tasks[id_bot].pause()
                 self.botManager.main_tasks[id_bot].contadorOperada+=1
-                ##self.log.logInfo.info(f"paused:{self.botManager.main_tasks[id_bot].paused}")
-                self.log.logInfo.info(f"mandar a verificar orden para q opere contraria, hacerlo en nueva hilo")
+                ##self.log.logInfo(f"paused:{self.botManager.main_tasks[id_bot].paused}")
+                self.log.logInfo(f"mandar a verificar orden para q opere contraria, hacerlo en nueva hilo")
                 taskOperada = asyncio.create_task(self.botManager.main_tasks[id_bot].verificar_orden_operada(details,typeOrder, lastOrderID))
                 response = await taskOperada
-                ##self.log.logInfo.info(f"luego q termino de verificar la operada y operar la contraria quito el pause")
-                ##self.log.logInfo.info(f"paused:{self.botManager.main_tasks[id_bot].paused}")
+                ##self.log.logInfo(f"luego q termino de verificar la operada y operar la contraria quito el pause")
+                ##self.log.logInfo(f"paused:{self.botManager.main_tasks[id_bot].paused}")
                 self.botManager.main_tasks[id_bot].contadorOperada-=1
-                ##self.log.logInfo.info(f"contadorOperada: {self.botManager.main_tasks[id_bot].contadorOperada}")
+                ##self.log.logInfo(f"contadorOperada: {self.botManager.main_tasks[id_bot].contadorOperada}")
                 if self.botManager.main_tasks[id_bot].contadorOperada == 0:
-                    self.log.logInfo.info(f"contador = 0, pongo resume")
+                    self.log.logInfo(f"contador = 0, pongo resume")
                     await self.botManager.main_tasks[id_bot].resume()
-                ##self.log.logInfo.info(f"paused:{self.botManager.main_tasks[id_bot].paused}")
+                ##self.log.logInfo(f"paused:{self.botManager.main_tasks[id_bot].paused}")
             elif typeOrder == "B":
-                ##self.log.logInfo.info(f"esta es una contraria, aqui ya denbe estar en pause solo mando a verificar en un nuevo hilo")
+                ##self.log.logInfo(f"esta es una contraria, aqui ya denbe estar en pause solo mando a verificar en un nuevo hilo")
                 taskOperada = asyncio.create_task(self.botManager.main_tasks[id_bot].verificar_orden_operada(details,typeOrder, lastOrderID))
-                ##self.log.logInfo.info(f"listo aqui ya se verifico la contraria ")
+                ##self.log.logInfo(f"listo aqui ya se verifico la contraria ")
                 response = await taskOperada
         
     async def process_message(self, task):
-        self.log.logInfo.info(f"procesando tarea.....: {task}")
+        self.log.logInfo(f"procesando tarea.....: {task}")
         if "type" in task:
             #{'type': 0, 'symbolTicker': 'MERV - XMEV - AL30 - CI', 'marketData': {'BI': [{'price': 40.0, 'size': 10, 'position': 1}], 'OF': []}}
             if task["type"]==0:
@@ -233,9 +234,9 @@ class MainFix():
 
             if task["type"]==2:
                 #{"type": 2, "cuenta": cuenta, "balance": newBalance}
-                ##self.log.logInfo.info(f"balance viejo: {self.balance}")
+                ##self.log.logInfo(f"balance viejo: {self.balance}")
                 self.balance[task["cuenta"]] = task["balance"]
-                ##self.log.logInfo.info(f"balance nuevo: {self.balance}")
+                ##self.log.logInfo(f"balance nuevo: {self.balance}")
             """
             3=order NEW
             4=order modify
@@ -251,23 +252,23 @@ class MainFix():
 
     async def update_tickers_bot(self, task):
         #aqui me llega el ticker y debo enviarlo a cada bot registrado 
-        self.log.logInfo.info("entrando a update tickers bot")
+        self.log.logInfo("entrando a update tickers bot")
         symbolTicker = task["symbolTicker"]
         marketData = task["marketData"]
         if symbolTicker in self.marketSymbolsSubs:
             #si existe aqui entonces lo envio a los bots 
             for id_bot in self.marketSymbolsSubs[symbolTicker]:
                 if id_bot in self.botManager.main_tasks:
-                    self.log.logInfo.info(f"tickers antes: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
+                    self.log.logInfo(f"tickers antes: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
                     self.botManager.main_tasks[id_bot]._tickers[symbolTicker] = marketData
-                    self.log.logInfo.info(f"tickers despues: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
-                    ##self.log.logInfo.info(f"ahora si agregamos tarea al bot para verificar puntas")
+                    self.log.logInfo(f"tickers despues: {self.botManager.main_tasks[id_bot]._tickers[symbolTicker]}")
+                    ##self.log.logInfo(f"ahora si agregamos tarea al bot para verificar puntas")
                     if self.botManager.main_tasks[id_bot].botData["botIniciado"]==True:
                         await self.botManager.main_tasks[id_bot].add_task(task)
-                    ##self.log.logInfo.info(f"listo tarea agregada al bot")
-                    ##self.log.logInfo.info(f"self.botManager.tasks: {self.botManager.tasks}")
-                    ##self.log.logInfo.info(f"self.botManager.main_tasks: {self.botManager.main_tasks}") 
+                    ##self.log.logInfo(f"listo tarea agregada al bot")
+                    ##self.log.logInfo(f"self.botManager.tasks: {self.botManager.tasks}")
+                    ##self.log.logInfo(f"self.botManager.main_tasks: {self.botManager.main_tasks}") 
                 else:
-                    self.log.logInfo.error("el bot no esta en el botManager quizas ya se detuvo")
+                    self.log.logError("el bot no esta en el botManager quizas ya se detuvo")
         else:
-            self.log.logInfo.error(f"no nay bots suscritos a este simbolo")
+            self.log.logError(f"no nay bots suscritos a este simbolo")

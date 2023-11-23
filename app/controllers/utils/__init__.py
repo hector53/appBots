@@ -205,7 +205,7 @@ class UtilsController:
                     break
                 time.sleep(0.1)
         except Exception as e:
-            log.error(f"error en esperar_bot_iniciado: {e}")
+            log.logError(f"error en esperar_bot_iniciado: {e}")
         return response
 
     async def detener_bot_by_id_viejo(fix, id_bot):
@@ -386,7 +386,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.error(f"error: {str(e)}")
+            log.logError(f"error: {str(e)}")
         return response
     
     async def editar_bot_ci_48(id_bot, fix, opciones):
@@ -417,7 +417,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.error(f"error: {str(e)}")
+            log.logError(f"error: {str(e)}")
         return response
 
     async def editar_bot_ci_ci(id_bot, fix, opciones):
@@ -447,7 +447,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.error(f"error: {str(e)}")
+            log.logError(f"error: {str(e)}")
         return response
 
     async def editar_bot_ci_48_bb(id_bot, fix, opciones):
@@ -479,7 +479,7 @@ class UtilsController:
 
         except Exception as e:
             response = {"status": False, "error": str(e)}
-            log.error(f"error: {str(e)}")
+            log.logError(f"error: {str(e)}")
         return response
 
     def get_tenencias_bot(posiciones):
@@ -496,7 +496,7 @@ class UtilsController:
                 }
                 arrayTenencias.append(objTenencia)
         except Exception as e:
-            log.error(f"error en get tenencias bot: {e}")
+            log.logError(f"error en get tenencias bot: {e}")
         return arrayTenencias
 
     async def cancelar_orden_async(id_fix, id_bot, orderID, OrigClOrdID, side, quantity, symbol, cuenta):
@@ -510,7 +510,7 @@ class UtilsController:
             response = await fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].clientR.cancelar_orden(
                 orderID, OrigClOrdID, sideFix, quantity, symbol)
         except Exception as e:
-            log.error(f"error en cancelar_orden_async: {e}")
+            log.logError(f"error en cancelar_orden_async: {e}")
         return response
 
     def guardar_security_in_fix(data, id_fix):

@@ -23,7 +23,7 @@ class BotsController:
             if fixJson["user"] != "" and fixJson["account"] != "":
                 bots = BotsModel.get_all(user_id, fixJson)
         except Exception as e:
-            log.error(f"error en show_all: {e}")
+            log.logError(f"error en show_all: {e}")
         return jsonify(bots)
 
     async def start_bot_new():
@@ -151,7 +151,7 @@ class BotsController:
                     response = {"status": True}
                     return jsonify(response)
                 except Exception as e:
-                    log.error(f"error editando bot general: {e} ")
+                    log.logError(f"error editando bot general: {e} ")
                     response = {"status": False, "msg": e}
                     abort(make_response(jsonify(message=response), 401))
             else:
@@ -335,8 +335,8 @@ class BotsController:
                 #  #log.logInfo(f"esto es lo q voy a retornar botE: {botE}")
                     return jsonify(botE)
         except Exception as e:
-            log.error(f"error en get botchar: {e}")
-            log.error(f"traceback: {traceback.format_exc()}")
+            log.logError(f"error en get botchar: {e}")
+            log.logError(f"traceback: {traceback.format_exc()}")
             abort(make_response(jsonify(message=f"botE error {e}"), 401))
 
     def deleteBot(id):
