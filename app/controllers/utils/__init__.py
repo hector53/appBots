@@ -159,6 +159,8 @@ class UtilsController:
             bot = botTriangulo(
                 symbols[0], symbols[1], symbols[2], fix, id_bot, cuenta, mongo)
             bot.botData["sizeMax"] = int(opciones["sizeMax"])
+            #spreadMin
+            bot.botData["varGan"] = float(opciones["spreadMin"])
             bot.botData["soloEscucharMercado"] = soloEscucharMercado
             bot.botData["market"] = opciones["market"]
             bot.botData["ruedaA"]["sizeDisponible"] = int(
@@ -373,7 +375,7 @@ class UtilsController:
         cuenta = fix["account"]
         try:
             if id_fix in fixM.main_tasks and id_bot in fixM.main_tasks[id_fix].botManager.main_tasks:
-                fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["varGan"] = int(
+                fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["varGan"] = float(
                     opciones["spreadMin"])
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["sizeMax"] = int(opciones["sizeMax"])
                 fixM.main_tasks[id_fix].botManager.main_tasks[id_bot].botData["market"] = opciones["market"]

@@ -74,7 +74,7 @@ class MainFix():
 
     def on_message(self, ws, message):
         timeA = datetime.datetime.now()
-        ##self.log.logInfo(f"mensaje del puerto: {self.port} y tiempo: {timeA} message: {message}")
+        self.log.logInfo(f"mensaje del puerto: {self.port} y tiempo: {timeA} message: {message}")
         encode_json = json.loads(str(message).replace("'", '"'))
         
         self.message_queue.agregar_tarea_not_await(encode_json)

@@ -313,10 +313,13 @@ class client_request():
         from app import redis_cliente as redis_client
         response = {"status": False}
         try:
-            sideDb = "Buy" if side == "OF" else "Sell"
+            sideDb = "Buy"
+            if side == "OF":
+                sideDb = "Sell"
             clave_symbol = f"symbol:{futuro}"
             clave_id_bot = f"id_bot:{self.id_bot}"
             clave_ordStatus_new = f"ordStatus:NEW"
+            clave_price = f"price:{orden['price']}"
             clave_ordStatus_partially_filled = f"ordStatus:PARTIALLY FILLED"
             clave_leavesQty = f"leavesQty:"
             clave_active = f"active:True"
@@ -331,10 +334,11 @@ class client_request():
             claves_active = redis_client.smembers(clave_active)
             claves_side = redis_client.smembers(clave_side)
             claves_cuenta = redis_client.smembers(clave_cuenta)
+            claves_price = redis_client.smembers(clave_price)
 
 
             # Calcular la intersección de claves que cumplen con todas las condiciones
-            claves_interseccion = (
+            claves_interseccion = ( claves_price &
                 claves_cuenta & claves_side &
                 claves_active &
                 claves_symbol & claves_id_bot & (claves_ordStatus_new  | ( claves_ordStatus_partially_filled & redis_client.smembers(f"{clave_leavesQty}{orden['size']}")))
@@ -345,6 +349,7 @@ class client_request():
             for clave in claves_interseccion:
                 orden = redis_client.hgetall(clave)
                 orden_decodificada = {campo.decode('utf-8'): valor.decode('utf-8') for campo, valor in orden.items()}
+                self.logInfo(f"orden_decodificada: {orden_decodificada}")
                 detalles_ordenes.append(orden_decodificada)
             if len(detalles_ordenes) > 0:
                 response = {"status": True, "orden": detalles_ordenes[0]}
@@ -890,6 +895,8 @@ class client_request():
             pipeline.sadd(f"side:{orden['side']}", clave_orden)
             # ... Continuar agregando otras operaciones ...
             redis_cliente.sadd(f"cuenta:{orden['cuenta']}", clave_orden)
+            #precio
+            redis_cliente.sadd(f"price:{orden['price']}", clave_orden)
             redis_cliente.sadd(f"id_bot:{orden['id_bot']}", clave_orden)
             redis_cliente.sadd(f"ordStatus:{orden['ordStatus']}", clave_orden)
             redis_cliente.sadd(f"leavesQty:{orden['leavesQty']}", clave_orden)
@@ -1502,6 +1509,7 @@ class client_request():
                 self.logInfo(
                     f"i={i}, verificar si : {ordenes_book[i]}, es ,mia")
                 mia = await self.es_orden_mia(ordenes_book[i], futuro, side)
+                self.logInfo(f"mia: {mia}")
                 if mia["status"] == True:
                     if i == 0:
                         response["primeraOrden"] = True
